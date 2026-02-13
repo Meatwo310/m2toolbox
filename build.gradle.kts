@@ -21,14 +21,14 @@ object ModConfig {
     const val MAPPING_VERSION = "2023.09.03-1.20.1"
 
     // Mod Properties
-    const val MOD_ID = "examplemod"
-    const val MOD_NAME = "Example Mod"
+    const val MOD_ID = "m2toolbox"
+    const val MOD_NAME = "m2toolbox"
     const val MOD_LICENSE = "MIT"
     const val MOD_VERSION = "0.1.0"
-    const val MOD_GROUP_ID = "net.meatwo310.examplemod"
+    const val MOD_GROUP_ID = "net.meatwo310.m2toolbox"
     const val MOD_AUTHORS = "Meatwo310"
     const val MOD_DESCRIPTION = ""
-    const val MOD_DISPLAY_URL = ""
+    const val MOD_DISPLAY_URL = "https://github.com/Meatwo310/m2toolbox"
     const val MOD_CREDITS = ""
 }
 
