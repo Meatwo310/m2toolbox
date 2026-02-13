@@ -47,6 +47,14 @@ java {
     }
 }
 
+val mainSourceSet: SourceSet = sourceSets.main.get()
+val dataSourceSet: SourceSet = sourceSets.create("data") {
+    java.srcDir("src/data/java")
+    resources.srcDir("src/data/resources")
+    compileClasspath += mainSourceSet.output + mainSourceSet.compileClasspath
+    runtimeClasspath += output + compileClasspath + mainSourceSet.runtimeClasspath
+}
+
 with(System.getProperties()) {
     println("Java: ${get("java.version")}, JVM: ${get("java.vm.version")} (${get("java.vendor")}), Arch: ${get("os.arch")}")
 }
@@ -64,20 +72,20 @@ minecraft {
     copyIdeResources.set(true)
 //    accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
 
-    runs.configureEach {
-        workingDirectory(project.file("run"))
-        property("forge.logging.markers", "REGISTRIES")
-        property("forge.logging.console.level", "debug")
+    runs {
+        configureEach {
+            workingDirectory(project.file("run"))
+            property("forge.logging.markers", "REGISTRIES")
+            property("forge.logging.console.level", "debug")
 
-        mods.create(ModConfig.MOD_ID) {
-            source(sourceSets.main.get())
+            mods.create(ModConfig.MOD_ID) {
+                source(mainSourceSet)
+            }
+
+            property("mixin.env.remapRefMap", "true")
+            property("mixin.env.refMapRemappingFile", "${project.projectDir}/build/createSrgToMcp/output.srg")
         }
 
-        property("mixin.env.remapRefMap", "true")
-        property("mixin.env.refMapRemappingFile", "${project.projectDir}/build/createSrgToMcp/output.srg")
-    }
-
-    runs {
         create("client") {
             property("forge.enabledGameTestNamespaces", ModConfig.MOD_ID)
             jvmArgs("-XX:+AllowEnhancedClassRedefinition")
@@ -98,6 +106,10 @@ minecraft {
         create("data") {
             workingDirectory(project.file("run-data"))
             args("--mod", ModConfig.MOD_ID, "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources/"))
+
+            mods.getByName(ModConfig.MOD_ID) {
+                source(dataSourceSet)
+            }
         }
     }
 }
