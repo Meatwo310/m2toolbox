@@ -5,7 +5,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(M2Toolbox.MODID)
 public class M2Toolbox {
-    public static final String MODID = "examplemod";
+    public static final String MODID = "m2toolbox";
 
     public M2Toolbox(FMLJavaModLoadingContext ctx) {
 //        ctx.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC);
