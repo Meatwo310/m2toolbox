@@ -48,7 +48,7 @@ java {
 }
 
 val mainSourceSet: SourceSet = sourceSets.main.get()
-val dataSourceSet: SourceSet = sourceSets.create("data") {
+val dataSourceSet: SourceSet = sourceSets.create("data").apply {
     java.srcDir("src/data/java")
     resources.srcDir("src/data/resources")
     compileClasspath += mainSourceSet.output + mainSourceSet.compileClasspath
