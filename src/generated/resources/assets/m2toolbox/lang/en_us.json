@@ -1,4 +1,5 @@
 {
+  "item.m2toolbox.overstacked": "Cannot use while overstacked",
   "item.m2toolbox.toolbox": "Toolbox",
   "item.m2toolbox.tray": "Tray",
   "itemGroup.m2toolbox": "m2toolbox",

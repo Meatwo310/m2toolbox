@@ -28,6 +28,8 @@ public class LangGen {
 
             add(M2Toolbox.KEY_CATEGORY, "m2toolbox");
             add(M2Toolbox.KEY_OPEN_RADIAL, "Open Radial Menu");
+
+            add(M2Toolbox.ITEM_OVERSTACKED, "Cannot use while overstacked");
         }
     }
 
@@ -42,6 +44,8 @@ public class LangGen {
             addItem(M2ToolboxItems.TRAY, "トレイ");
 
             add(M2Toolbox.KEY_OPEN_RADIAL, "ラジアルメニューを開く");
+
+            add(M2Toolbox.ITEM_OVERSTACKED, "スタックされた状態では使用できません");
         }
     }
 }

@@ -19,6 +19,8 @@ public class M2Toolbox {
     public static final String KEY_OPEN_RADIAL = "key." + MODID + ".open_radial";
     public static final String KEY_CATEGORY = "key.categories." + MODID;
 
+    public static final String ITEM_OVERSTACKED = "item." + MODID + ".overstacked";
+
     public M2Toolbox(FMLJavaModLoadingContext ctx) {
         IEventBus bus = ctx.getModEventBus();
 

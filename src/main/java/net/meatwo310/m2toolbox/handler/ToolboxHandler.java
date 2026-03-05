@@ -15,4 +15,9 @@ public class ToolboxHandler extends ItemStackHandler {
     public boolean isItemValid(int slot, ItemStack stack) {
         return stack.is(M2ToolboxItems.TRAY.get());
     }
+
+    @Override
+    public int getSlotLimit(int slot) {
+        return 1;
+    }
 }
