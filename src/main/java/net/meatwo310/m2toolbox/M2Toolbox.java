@@ -22,6 +22,8 @@ public class M2Toolbox {
 
     public static final String ITEM_OVERSTACKED = "item." + MODID + ".overstacked";
 
+    public static final String GUI_BACK = "gui." + MODID + ".back";
+
     public M2Toolbox(FMLJavaModLoadingContext ctx) {
         IEventBus bus = ctx.getModEventBus();
 

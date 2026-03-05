@@ -1,4 +1,5 @@
 {
+  "gui.m2toolbox.back": "Back",
   "item.m2toolbox.overstacked": "Cannot use while overstacked",
   "item.m2toolbox.toolbox": "Toolbox",
   "item.m2toolbox.tray": "Tray",

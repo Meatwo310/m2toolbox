@@ -20,10 +20,16 @@ public class TrayMenu extends AbstractItemContainerMenu {
     @Nullable
     private ItemStack toolboxStack = null;
     private int toolboxSlotIndex = -1;
+    private boolean fromToolbox = false;
 
     // Client
     public TrayMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
         this(containerId, playerInv, extraData.readItem());
+        this.fromToolbox = extraData.readBoolean();
+    }
+
+    public boolean isFromToolbox() {
+        return fromToolbox;
     }
 
     // Server - 直接開く場合

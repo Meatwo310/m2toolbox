@@ -53,7 +53,10 @@ public class OpenTrayPacket {
                             (id, inv, p) -> new TrayMenu(id, inv, trayStack, toolboxStack, slot),
                             trayStack.getHoverName()
                     ),
-                    buf -> buf.writeItem(trayStack)
+                    buf -> {
+                        buf.writeItem(trayStack);
+                        buf.writeBoolean(true); // fromToolbox
+                    }
             );
         });
         ctx.get().setPacketHandled(true);

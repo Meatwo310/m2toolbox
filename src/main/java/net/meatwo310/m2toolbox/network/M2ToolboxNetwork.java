@@ -18,5 +18,7 @@ public class M2ToolboxNetwork {
     public static void register() {
         CHANNEL.registerMessage(nextId++, OpenTrayPacket.class,
                 OpenTrayPacket::encode, OpenTrayPacket::decode, OpenTrayPacket::handle);
+        CHANNEL.registerMessage(nextId++, ReopenToolboxPacket.class,
+                ReopenToolboxPacket::encode, ReopenToolboxPacket::decode, ReopenToolboxPacket::handle);
     }
 }
