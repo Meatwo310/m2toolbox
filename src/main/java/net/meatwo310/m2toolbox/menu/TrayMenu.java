@@ -39,14 +39,14 @@ public class TrayMenu extends AbstractItemContainerMenu {
                 @Override
                 public void setChanged() {
                     super.setChanged();
-                    containerStack.getOrCreateTag().put("Items", inventory.serializeNBT());
+                    saveOrClearNBT();
                 }
             });
             this.addSlot(new SlotItemHandler(inventory, i + cols, i * 18 + startX, subSlotY) {
                 @Override
                 public void setChanged() {
                     super.setChanged();
-                    containerStack.getOrCreateTag().put("Items", inventory.serializeNBT());
+                    saveOrClearNBT();
                 }
             });
         }

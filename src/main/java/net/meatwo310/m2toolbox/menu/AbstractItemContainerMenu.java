@@ -50,6 +50,24 @@ public abstract class AbstractItemContainerMenu extends AbstractContainerMenu {
         }
     }
 
+    protected void saveOrClearNBT() {
+        boolean empty = isEmpty();
+        if (empty) {
+            containerStack.setTag(null);
+        } else {
+            containerStack.getOrCreateTag().put("Items", inventory.serializeNBT());
+        }
+    }
+
+    public boolean isEmpty() {
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            if (!inventory.getStackInSlot(i).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public boolean stillValid(Player player) {
         return player.getMainHandItem() == containerStack || player.getOffhandItem() == containerStack;

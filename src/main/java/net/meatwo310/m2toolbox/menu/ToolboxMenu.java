@@ -37,7 +37,7 @@ public class ToolboxMenu extends AbstractItemContainerMenu {
                 @Override
                 public void setChanged() {
                     super.setChanged();
-                    containerStack.getOrCreateTag().put("Items", inventory.serializeNBT());
+                    saveOrClearNBT();
                 }
             });
         }
