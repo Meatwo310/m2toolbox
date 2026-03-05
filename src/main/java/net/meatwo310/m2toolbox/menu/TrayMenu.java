@@ -1,26 +1,49 @@
 package net.meatwo310.m2toolbox.menu;
 
+import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class TrayMenu extends AbstractItemContainerMenu {
+    @Nullable
+    private ItemStack toolboxStack = null;
+    private int toolboxSlotIndex = -1;
+
     // Client
     public TrayMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
         this(containerId, playerInv, extraData.readItem());
     }
 
-    // Server
-    public TrayMenu(int containerId, Inventory playerInv, ItemStack toolboxStack) {
-        super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, toolboxStack);
+    // Server - 直接開く場合
+    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack) {
+        super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, trayStack);
+    }
+
+    // Server - Toolbox経由で開く場合
+    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, ItemStack toolboxStack, int toolboxSlotIndex) {
+        this(containerId, playerInv, trayStack);
+        this.toolboxStack = toolboxStack;
+        this.toolboxSlotIndex = toolboxSlotIndex;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        if (toolboxStack != null) {
+            return player.getMainHandItem() == toolboxStack || player.getOffhandItem() == toolboxStack;
+        }
+        return super.stillValid(player);
     }
 
     @Override
@@ -39,16 +62,51 @@ public class TrayMenu extends AbstractItemContainerMenu {
                 @Override
                 public void setChanged() {
                     super.setChanged();
-                    saveOrClearNBT();
+                    onSlotChanged();
                 }
             });
             this.addSlot(new SlotItemHandler(inventory, i + cols, i * 18 + startX, subSlotY) {
                 @Override
                 public void setChanged() {
                     super.setChanged();
-                    saveOrClearNBT();
+                    onSlotChanged();
                 }
             });
+        }
+    }
+
+    private void onSlotChanged() {
+        saveOrClearNBT();
+        if (toolboxStack != null) {
+            syncToToolbox();
+        }
+    }
+
+    /**
+     * Trayの変更内容をToolbox側のNBTに書き戻す。
+     * saveOrClearNBT()の後に呼ぶこと。
+     */
+    private void syncToToolbox() {
+        if (toolboxStack == null) return;
+        ToolboxHandler toolboxHandler = new ToolboxHandler();
+        CompoundTag tag = toolboxStack.getTag();
+        if (tag != null && tag.contains("Items")) {
+            toolboxHandler.deserializeNBT(tag.getCompound("Items"));
+        }
+        toolboxHandler.setStackInSlot(toolboxSlotIndex, containerStack);
+
+        boolean toolboxEmpty = true;
+        for (int i = 0; i < toolboxHandler.getSlots(); i++) {
+            if (!toolboxHandler.getStackInSlot(i).isEmpty()) {
+                toolboxEmpty = false;
+                break;
+            }
+        }
+
+        if (toolboxEmpty) {
+            toolboxStack.setTag(null);
+        } else {
+            toolboxStack.getOrCreateTag().put("Items", toolboxHandler.serializeNBT());
         }
     }
 }
