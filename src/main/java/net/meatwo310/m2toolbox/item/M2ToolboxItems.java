@@ -14,7 +14,7 @@ public class M2ToolboxItems {
             new ToolboxItem(new Item.Properties())
     );
     public static final RegistryObject<Item> TRAY = ITEMS.register("tray", () ->
-            new Item(new Item.Properties())
+            new TrayItem(new Item.Properties())
     );
 
     public static void register(IEventBus bus) {

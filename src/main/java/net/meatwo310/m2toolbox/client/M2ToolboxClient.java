@@ -1,10 +1,9 @@
 package net.meatwo310.m2toolbox.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.meatwo310.m2toolbox.client.gui.ToolboxScreen;
-import net.meatwo310.m2toolbox.menu.M2ToolboxMenus;
+import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.client.gui.M2ToolboxScreens;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
@@ -31,6 +30,6 @@ public class M2ToolboxClient {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
-        MenuScreens.register(M2ToolboxMenus.TOOLBOX_MENU.get(), ToolboxScreen::new);
+        M2ToolboxScreens.register();
     }
 }

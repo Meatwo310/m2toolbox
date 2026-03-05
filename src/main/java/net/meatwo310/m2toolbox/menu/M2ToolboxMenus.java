@@ -13,6 +13,9 @@ public class M2ToolboxMenus {
     public static final RegistryObject<MenuType<ToolboxMenu>> TOOLBOX_MENU = MENUS.register("toolbox_menu",
             () -> IForgeMenuType.create(ToolboxMenu::new));
 
+        public static final RegistryObject<MenuType<TrayMenu>> TRAY_MENU = MENUS.register("tray_menu",
+                () -> IForgeMenuType.create(TrayMenu::new));
+
     public static void register(IEventBus bus) {
         MENUS.register(bus);
     }
