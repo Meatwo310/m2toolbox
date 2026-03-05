@@ -30,22 +30,19 @@ public class TrayMenu extends AbstractItemContainerMenu {
 
     @Override
     protected void layoutContainerSlots() {
+        int cols = 9;
         int startX = 8;
-
-        int toolY = 18;
-        for (int i = 0; i < 9; i++) {
-            this.addSlot(new SlotItemHandler(inventory, i, i * 18 + startX, toolY) {
+        int toolSlotY = 18;
+        int subSlotY = 36;
+        for (int i = 0; i < cols; i++) {
+            this.addSlot(new SlotItemHandler(inventory, i, i * 18 + startX, toolSlotY) {
                 @Override
                 public void setChanged() {
                     super.setChanged();
                     containerStack.getOrCreateTag().put("Items", inventory.serializeNBT());
                 }
             });
-        }
-
-        int subY = 36;
-        for (int i = 0; i < 9; i++) {
-            this.addSlot(new SlotItemHandler(inventory, i, i * 18 + startX, subY) {
+            this.addSlot(new SlotItemHandler(inventory, i + cols, i * 18 + startX, subSlotY) {
                 @Override
                 public void setChanged() {
                     super.setChanged();
