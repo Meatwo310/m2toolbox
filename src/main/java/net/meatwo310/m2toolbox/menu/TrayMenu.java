@@ -1,6 +1,6 @@
 package net.meatwo310.m2toolbox.menu;
 
-import net.meatwo310.m2toolbox.handler.ToolboxHandler;
+import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -25,7 +25,7 @@ public class TrayMenu extends AbstractItemContainerMenu {
 
     @Override
     protected ItemStackHandler createHandler() {
-        return new ToolboxHandler();
+        return new TrayHandler();
     }
 
     @Override
