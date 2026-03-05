@@ -5,8 +5,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class ToolboxHandler extends ItemStackHandler {
-    public ToolboxHandler(int size) {
-        super(size);
+    public static final int SLOTS = 9;
+
+    public ToolboxHandler() {
+        super(SLOTS);
     }
 
     @Override

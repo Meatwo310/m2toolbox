@@ -30,7 +30,7 @@ public class ToolboxMenu extends AbstractContainerMenu {
         super(M2ToolboxMenus.TOOLBOX_MENU.get(), containerId);
         this.toolboxStack = toolboxStack;
 
-        this.inventory = new ToolboxHandler(9);
+        this.inventory = new ToolboxHandler();
         if (toolboxStack.hasTag()) {
             var tag = toolboxStack.getTag();
             if (tag != null && tag.contains("Items")) {
