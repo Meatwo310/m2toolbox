@@ -14,6 +14,11 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 public class M2Toolbox {
     public static final String MODID = "m2toolbox";
 
+    public static final String TAB_KEY = "itemGroup." + MODID;
+
+    public static final String KEY_OPEN_RADIAL = "key." + MODID + ".open_radial";
+    public static final String KEY_CATEGORY = "key.categories." + MODID;
+
     public M2Toolbox(FMLJavaModLoadingContext ctx) {
         IEventBus bus = ctx.getModEventBus();
 

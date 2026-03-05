@@ -13,9 +13,8 @@ public class M2ToolboxTabs {
     private static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, M2Toolbox.MODID);
 
-    public static final String TAB_KEY = "item_group.%s.main".formatted(M2Toolbox.MODID);
     public static final RegistryObject<CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
-            .title(Component.translatable(TAB_KEY))
+            .title(Component.translatable(M2Toolbox.TAB_KEY))
             .icon(() -> new ItemStack(M2ToolboxItems.TOOLBOX.get()))
             .displayItems((params, output) ->
                     M2ToolboxItems.ITEMS.getEntries().forEach(item -> output.accept(item.get()))

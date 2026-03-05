@@ -1,5 +1,7 @@
 {
   "item.m2toolbox.toolbox": "Toolbox",
   "item.m2toolbox.tray": "Tray",
-  "item_group.m2toolbox.main": "m2toolbox"
+  "itemGroup.m2toolbox": "m2toolbox",
+  "key.categories.m2toolbox": "m2toolbox",
+  "key.m2toolbox.open_radial": "Open Radial Menu"
 }

@@ -1,4 +1,5 @@
 {
   "item.m2toolbox.toolbox": "ツールボックス",
-  "item.m2toolbox.tray": "トレイ"
+  "item.m2toolbox.tray": "トレイ",
+  "key.m2toolbox.open_radial": "ラジアルメニューを開く"
 }

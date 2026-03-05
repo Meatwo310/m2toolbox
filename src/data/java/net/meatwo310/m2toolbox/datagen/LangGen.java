@@ -2,7 +2,6 @@ package net.meatwo310.m2toolbox.datagen;
 
 import net.meatwo310.m2toolbox.M2Toolbox;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
-import net.meatwo310.m2toolbox.item.M2ToolboxTabs;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraftforge.common.data.LanguageProvider;
@@ -23,9 +22,12 @@ public class LangGen {
 
         @Override
         protected void addTranslations() {
-            add(M2ToolboxTabs.TAB_KEY, "m2toolbox");
+            add(M2Toolbox.TAB_KEY, "m2toolbox");
             addItem(M2ToolboxItems.TOOLBOX, "Toolbox");
             addItem(M2ToolboxItems.TRAY, "Tray");
+
+            add(M2Toolbox.KEY_CATEGORY, "m2toolbox");
+            add(M2Toolbox.KEY_OPEN_RADIAL, "Open Radial Menu");
         }
     }
 
@@ -38,6 +40,8 @@ public class LangGen {
         protected void addTranslations() {
             addItem(M2ToolboxItems.TOOLBOX, "ツールボックス");
             addItem(M2ToolboxItems.TRAY, "トレイ");
+
+            add(M2Toolbox.KEY_OPEN_RADIAL, "ラジアルメニューを開く");
         }
     }
 }

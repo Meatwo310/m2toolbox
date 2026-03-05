@@ -16,11 +16,11 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class M2ToolboxClient {
     public static final Lazy<KeyMapping> OPEN_RADIAL_MENU = Lazy.of(() -> new KeyMapping(
-            "key.m2toolbox.open_radial",
+            M2Toolbox.KEY_OPEN_RADIAL,
             KeyConflictContext.UNIVERSAL,
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_R,
-            "key.categories.m2toolbox"
+            M2Toolbox.KEY_CATEGORY
     ));
 
     @SubscribeEvent
