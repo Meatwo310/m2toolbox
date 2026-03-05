@@ -17,11 +17,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
     private static final ResourceLocation TEXTURE = M2Toolbox.loc("textures/gui/tray.png");
 
-    // "戻る"ボタンのサイズ・位置（GUIウィンドウ相対）
     private static final int BACK_BTN_W = 40;
     private static final int BACK_BTN_H = 12;
-    /** スロット行(y=18)の上、タイトル行の右隣あたりに配置 */
-    private static final int BACK_BTN_X_OFFSET = 0;
+    private static final int BACK_BTN_X_OFFSET = 7; // from right edge
     private static final int BACK_BTN_Y_OFFSET = 4;
 
     public TrayScreen(TrayMenu menu, Inventory playerInventory, Component title) {
@@ -38,7 +36,7 @@ public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
         super.init();
 
         if (menu.isFromToolbox()) {
-            int btnX = this.leftPos + this.imageWidth - BACK_BTN_W - 8;
+            int btnX = this.leftPos + this.imageWidth - BACK_BTN_W - BACK_BTN_X_OFFSET;
             int btnY = this.topPos + BACK_BTN_Y_OFFSET;
 
             this.addRenderableWidget(
