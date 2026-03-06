@@ -24,17 +24,39 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 public class RadialMenuScreen extends Screen {
-    private static final int ITEM_COUNT = 10;
-    private static final double ANGLE_PER_ITEM = 360.0 / ITEM_COUNT; // 36度
-    private static final double OFFSET = ANGLE_PER_ITEM / 2.0;       // 18度
-    private static final int SEGMENTS = 12; // セクター弧の分割数
+
+    // ---- 定数 ----------------------------------------------------------------
+
+    private static final int   ITEM_COUNT     = 10;
+    private static final double ANGLE_PER_ITEM = 360.0 / ITEM_COUNT; // 36°
+    private static final double HALF_ANGLE     = ANGLE_PER_ITEM / 2.0; // 18°（12時合わせ用オフセット）
+    private static final int   ARC_SEGMENTS   = 24; // 弧の分割数（滑らかさ）
+    private static final int   GAP_PX         = 2;  // セクター間の隙間（ピクセル）
+
+    // 色定数（ARGB ではなく RGBA float）
+    private static final float[] COLOR_ACTIVE   = { 0.18f, 0.18f, 0.18f, 0.82f };
+    private static final float[] COLOR_SELECTED = { 0.88f, 0.88f, 0.88f, 0.90f };
+    private static final float[] COLOR_INACTIVE = { 0.06f, 0.06f, 0.06f, 0.65f };
+    private static final float[] COLOR_BG_RING  = { 0.05f, 0.05f, 0.05f, 0.72f };
+
+    // コンテンツ位置のパラメータ
+    /** 通常時のアイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
+    private static final float CONTENT_RADIUS_RATIO = 0.60f;
+    /** 選択時に外側へ押し出す追加ピクセル数 */
+    private static final int   CONTENT_PUSH_PX      = 5;
+    /** 選択時のアイコンスケール */
+    private static final float ICON_SCALE_SELECTED  = 1.35f;
+    /** 通常時のアイコンスケール */
+    private static final float ICON_SCALE_NORMAL    = 1.00f;
+
+    // ---- フェーズ管理 ---------------------------------------------------------
 
     public enum Phase { TRAY_SELECT, ITEM_SELECT }
 
     private Phase phase = Phase.TRAY_SELECT;
 
     // ツールボックス情報（フェーズ1用）
-    private final int toolboxInventorySlot;
+    private final int       toolboxInventorySlot;
     private final ItemStack toolboxStack;
     private final ItemStack[] trayStacks = new ItemStack[9];
 
@@ -42,179 +64,272 @@ public class RadialMenuScreen extends Screen {
     private int selectedTraySlot = -1;
     private final ItemStack[] toolStacks = new ItemStack[9];
 
+    // ---- コンストラクタ -------------------------------------------------------
+
     public RadialMenuScreen(int toolboxInventorySlot, ItemStack toolboxStack) {
         super(Component.literal("Radial Menu"));
         this.toolboxInventorySlot = toolboxInventorySlot;
-        this.toolboxStack = toolboxStack;
+        this.toolboxStack         = toolboxStack;
         loadTrayStacks();
     }
 
-    /** ツールボックスのNBTからトレイ一覧を読み込む */
+    // ---- データロード --------------------------------------------------------
+
     private void loadTrayStacks() {
         ToolboxHandler handler = new ToolboxHandler();
         CompoundTag tag = toolboxStack.getTag();
         if (tag != null && tag.contains("Items")) {
             handler.deserializeNBT(tag.getCompound("Items"));
         }
-        for (int i = 0; i < 9; i++) {
-            trayStacks[i] = handler.getStackInSlot(i);
-        }
+        for (int i = 0; i < 9; i++) trayStacks[i] = handler.getStackInSlot(i);
     }
 
-    /** 選択したトレイのNBTからツールスロット一覧を読み込む */
     private void loadToolStacks(ItemStack trayStack) {
         TrayHandler handler = new TrayHandler();
         CompoundTag tag = trayStack.getTag();
         if (tag != null && tag.contains("Items")) {
             handler.deserializeNBT(tag.getCompound("Items"));
         }
-        for (int i = 0; i < 9; i++) {
-            toolStacks[i] = handler.getStackInSlot(i); // toolスロット 0-8
-        }
+        for (int i = 0; i < 9; i++) toolStacks[i] = handler.getStackInSlot(i);
     }
+
+    // ---- ヘルパー ------------------------------------------------------------
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    public boolean isPauseScreen() { return false; }
 
     /**
-     * マウス座標からセクターインデックスを返す。
-     * 中心に近すぎる・外側すぎる場合は -1。
+     * マウス座標からホバー中のセクターインデックスを返す。
+     * リング外・中心穴の内側なら -1。
      */
-    private int getSelectedIndex(int mouseX, int mouseY) {
-        int radius = ClientConfig.MENU_RADIUS.get();
+    private int getHoveredIndex(int mouseX, int mouseY) {
+        int radius      = ClientConfig.MENU_RADIUS.get();
         int innerRadius = ClientConfig.MENU_INNER_RADIUS.get();
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
+        int cx          = this.width  / 2;
+        int cy          = this.height / 2;
 
-        double dx = mouseX - centerX;
-        double dy = mouseY - centerY;
+        double dx   = mouseX - cx;
+        double dy   = mouseY - cy;
         double dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < innerRadius || dist > radius) return -1;
 
         double angleDeg = Math.toDegrees(Math.atan2(dy, dx));
         if (angleDeg < 0) angleDeg += 360;
-
-        // 0度 = 右方向 → 12時位置(index 0)が上になるよう調整
-        double adjustedAngle = (angleDeg + 90 + OFFSET) % 360;
-        return (int) (adjustedAngle / ANGLE_PER_ITEM);
+        double adjusted = (angleDeg + 90 + HALF_ANGLE) % 360;
+        return (int) (adjusted / ANGLE_PER_ITEM);
     }
 
-    /** インデックスのスロットが選択可能かどうか */
+    /** そのインデックスが選択可能（アイテムあり or スタブ）かどうか */
     private boolean isSlotActive(int index) {
-        if (index == 0) return true; // 設定/ユーティリティ（スタブ）は常に表示
-        int slotIndex = index - 1;
-        if (phase == Phase.TRAY_SELECT) {
-            return !trayStacks[slotIndex].isEmpty();
-        } else {
-            return !toolStacks[slotIndex].isEmpty();
-        }
+        if (index == 0) return true; // 設定 / ユーティリティ（スタブ）
+        int slot = index - 1;
+        return phase == Phase.TRAY_SELECT
+                ? !trayStacks[slot].isEmpty()
+                : !toolStacks[slot].isEmpty();
     }
+
+    /**
+     * セクター i の開始・終了角度 [rad] を計算する。
+     * GAP_PX 分だけ両端を内側に詰めてセクター間に隙間を作る。
+     *
+     * @param i         セクターインデックス
+     * @param radius    外縁半径（隙間の角度換算に使用）
+     * @param forFill   true=塗り用（隙間あり）, false=クリック判定用（隙間なし）
+     * @return [startAngle, endAngle] (rad)
+     */
+    private double[] sectorAngles(int i, int radius, boolean forFill) {
+        double baseStart = Math.toRadians(i * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
+        double baseEnd   = Math.toRadians((i + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
+        if (!forFill) return new double[]{ baseStart, baseEnd };
+        double gapAngle  = Math.atan2(GAP_PX, radius); // 隙間ピクセル → 角度
+        return new double[]{ baseStart + gapAngle, baseEnd - gapAngle };
+    }
+
+    // ---- レンダリング --------------------------------------------------------
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        // ゲーム画面を透過させ、メニュー自体だけ描画する
-        int radius = ClientConfig.MENU_RADIUS.get();
+        int radius      = ClientConfig.MENU_RADIUS.get();
         int innerRadius = ClientConfig.MENU_INNER_RADIUS.get();
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
-
-        int selectedIndex = getSelectedIndex(mouseX, mouseY);
+        int cx          = this.width  / 2;
+        int cy          = this.height / 2;
+        int hovered     = getHoveredIndex(mouseX, mouseY);
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.getBuilder();
-        Matrix4f matrix = guiGraphics.pose().last().pose();
+        // 1. 背景リング（セクター全体を覆う単一の暗い円）
+        renderBackgroundRing(guiGraphics, cx, cy, radius, innerRadius);
 
-        for (int i = 0; i < ITEM_COUNT; i++) {
-            boolean isSelected = (i == selectedIndex) && isSlotActive(i);
-            boolean isActive = isSlotActive(i);
-
-            double startAngle = Math.toRadians((i * ANGLE_PER_ITEM) - 90 - OFFSET);
-            double endAngle   = Math.toRadians(((i + 1) * ANGLE_PER_ITEM) - 90 - OFFSET);
-            double midAngle   = (startAngle + endAngle) / 2.0;
-
-            // セクターの色: 無効=暗い, 選択中=明るい, 通常=灰色
-            float r, g, b, a;
-            if (!isActive) {
-                r = 0.08f; g = 0.08f; b = 0.08f; a = 0.40f;
-            } else if (isSelected) {
-                r = 0.95f; g = 0.95f; b = 0.95f; a = 0.65f;
-            } else {
-                r = 0.20f; g = 0.20f; b = 0.20f; a = 0.50f;
-            }
-
-            // セクター描画（TRIANGLE_FAN）
-            buffer.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
-            buffer.vertex(matrix,
-                    (float)(centerX + Math.cos(midAngle) * innerRadius),
-                    (float)(centerY + Math.sin(midAngle) * innerRadius), 0)
-                    .color(r, g, b, a).endVertex();
-            for (int j = 0; j <= SEGMENTS; j++) {
-                double theta = startAngle + (endAngle - startAngle) * j / SEGMENTS;
-                buffer.vertex(matrix,
-                        (float)(centerX + Math.cos(theta) * radius),
-                        (float)(centerY + Math.sin(theta) * radius), 0)
-                        .color(r, g, b, a).endVertex();
-            }
-            for (int j = SEGMENTS; j >= 0; j--) {
-                double theta = startAngle + (endAngle - startAngle) * j / SEGMENTS;
-                buffer.vertex(matrix,
-                        (float)(centerX + Math.cos(theta) * innerRadius),
-                        (float)(centerY + Math.sin(theta) * innerRadius), 0)
-                        .color(r, g, b, a).endVertex();
-            }
-            tesselator.end();
-
-            // コンテンツ描画（セクター中央）
-            float contentRadius = (radius + innerRadius) / 2.0f;
-            int cx = (int)(centerX + Math.cos(midAngle) * contentRadius);
-            int cy = (int)(centerY + Math.sin(midAngle) * contentRadius);
-
-            if (i == 0) {
-                // 12時位置: 設定 or ユーティリティ（スタブ）
-                String label = (phase == Phase.TRAY_SELECT) ? "\u2699" : "\u2605"; // ⚙ or ★
-                int labelColor = isSelected ? 0xFFFF88 : (isActive ? 0xAAAA66 : 0x555544);
-                guiGraphics.drawCenteredString(this.font, label, cx, cy - 4, labelColor);
-            } else {
-                int slotIndex = i - 1;
-                ItemStack stack = (phase == Phase.TRAY_SELECT) ? trayStacks[slotIndex] : toolStacks[slotIndex];
-
-                if (!stack.isEmpty()) {
-                    // アイテムアイコン（16x16）
-                    guiGraphics.renderItem(stack, cx - 8, cy - 8);
-                    // スロット番号（アイコン下）
-                    int numColor = isSelected ? 0xFFFFFF : 0xAAAAAA;
-                    guiGraphics.drawCenteredString(this.font,
-                            String.valueOf(slotIndex + 1), cx, cy + 10, numColor);
-                } else {
-                    // 空スロット
-                    guiGraphics.drawCenteredString(this.font, "-", cx, cy - 4, 0x444444);
-                }
-            }
-        }
+        // 2. 各セクターの塗り
+        renderSegments(guiGraphics, cx, cy, radius, innerRadius, hovered);
 
         RenderSystem.disableBlend();
 
-        // 中央テキスト
-        String centerText = (phase == Phase.TRAY_SELECT) ? "Select Tray" : "Select Item";
-        guiGraphics.drawCenteredString(this.font, centerText, centerX, centerY - 4, 0xDDDDDD);
+        // 3. アイコン・ラベル（Pose スタックで拡縮するため blend 外で可）
+        renderContents(guiGraphics, cx, cy, radius, innerRadius, hovered);
+
+        // 4. 中央ラベル
+        renderCenterLabel(guiGraphics, cx, cy);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
+    /** 背景リング: セクター全体をひとつの暗い円で下塗りする */
+    private void renderBackgroundRing(GuiGraphics g, int cx, int cy, int radius, int innerRadius) {
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        Tesselator tess   = Tesselator.getInstance();
+        BufferBuilder buf = tess.getBuilder();
+        Matrix4f mat      = g.pose().last().pose();
+        float[] c = COLOR_BG_RING;
+
+        buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+        buf.vertex(mat, cx, cy, 0).color(c[0], c[1], c[2], c[3]).endVertex();
+        for (int j = 0; j <= ARC_SEGMENTS * ITEM_COUNT; j++) {
+            double theta = Math.toRadians((double) j / (ARC_SEGMENTS * ITEM_COUNT) * 360 - 90);
+            buf.vertex(mat,
+                    (float)(cx + Math.cos(theta) * radius),
+                    (float)(cy + Math.sin(theta) * radius), 0)
+                    .color(c[0], c[1], c[2], c[3]).endVertex();
+        }
+        tess.end();
+    }
+
+    /** 全セクターの塗りを描画する */
+    private void renderSegments(GuiGraphics g, int cx, int cy, int radius, int innerRadius, int hovered) {
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        Tesselator tess   = Tesselator.getInstance();
+        BufferBuilder buf = tess.getBuilder();
+        Matrix4f mat      = g.pose().last().pose();
+
+        for (int i = 0; i < ITEM_COUNT; i++) {
+            boolean active   = isSlotActive(i);
+            boolean selected = active && (i == hovered);
+            float[] c = selected ? COLOR_SELECTED : (active ? COLOR_ACTIVE : COLOR_INACTIVE);
+
+            double[] angles = sectorAngles(i, radius, true);
+            double startAngle = angles[0];
+            double endAngle   = angles[1];
+            double midAngle   = (startAngle + endAngle) / 2.0;
+
+            buf.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_COLOR);
+            // 扇の中心点は内縁の中点に置く（穴をきれいに抜くため）
+            buf.vertex(mat,
+                    (float)(cx + Math.cos(midAngle) * innerRadius),
+                    (float)(cy + Math.sin(midAngle) * innerRadius), 0)
+                    .color(c[0], c[1], c[2], c[3]).endVertex();
+            // 外弧
+            for (int j = 0; j <= ARC_SEGMENTS; j++) {
+                double theta = startAngle + (endAngle - startAngle) * j / ARC_SEGMENTS;
+                buf.vertex(mat,
+                        (float)(cx + Math.cos(theta) * radius),
+                        (float)(cy + Math.sin(theta) * radius), 0)
+                        .color(c[0], c[1], c[2], c[3]).endVertex();
+            }
+            // 内弧（逆順で戻る）
+            for (int j = ARC_SEGMENTS; j >= 0; j--) {
+                double theta = startAngle + (endAngle - startAngle) * j / ARC_SEGMENTS;
+                buf.vertex(mat,
+                        (float)(cx + Math.cos(theta) * innerRadius),
+                        (float)(cy + Math.sin(theta) * innerRadius), 0)
+                        .color(c[0], c[1], c[2], c[3]).endVertex();
+            }
+            tess.end();
+        }
+    }
+
+    /** 全セクターのアイコン・ラベルを描画する */
+    private void renderContents(GuiGraphics g, int cx, int cy, int radius, int innerRadius, int hovered) {
+        for (int i = 0; i < ITEM_COUNT; i++) {
+            boolean active   = isSlotActive(i);
+            boolean selected = active && (i == hovered);
+
+            double[] angles = sectorAngles(i, radius, false);
+            double midAngle = (angles[0] + angles[1]) / 2.0;
+
+            // コンテンツ中心: innerRadius〜radius の CONTENT_RADIUS_RATIO 地点
+            float baseRadius    = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
+            float contentRadius = baseRadius + (selected ? CONTENT_PUSH_PX : 0);
+
+            int iconCx = (int)(cx + Math.cos(midAngle) * contentRadius);
+            int iconCy = (int)(cy + Math.sin(midAngle) * contentRadius);
+
+            renderSlotContent(g, i, iconCx, iconCy, selected, active);
+        }
+    }
+
+    /** 1スロット分のアイコン・ラベルを描画する */
+    private void renderSlotContent(GuiGraphics g, int index, int cx, int cy,
+                                   boolean selected, boolean active) {
+        float scale = selected ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
+
+        if (index == 0) {
+            // 設定 / ユーティリティ（スタブ: ⚙ or ★ をテキスト描画）
+            String symbol = (phase == Phase.TRAY_SELECT) ? "\u2699" : "\u2605";
+            int color = selected ? 0xFFFFFFFF : (active ? 0xFFAAAAAA : 0xFF444444);
+            renderScaledCenteredText(g, symbol, cx, cy, scale, color);
+        } else {
+            int slot = index - 1;
+            ItemStack stack = (phase == Phase.TRAY_SELECT) ? trayStacks[slot] : toolStacks[slot];
+
+            if (!stack.isEmpty()) {
+                renderScaledItem(g, stack, cx, cy, scale);
+                // アイテム名（選択時のみ、アイコン下に表示）
+                if (selected) {
+                    String name = stack.getHoverName().getString();
+                    // 長すぎる場合は省略
+                    if (this.font.width(name) > 60) {
+                        name = this.font.plainSubstrByWidth(name, 57) + "...";
+                    }
+                    g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
+                }
+            } else {
+                // 空スロット: 薄い "-"
+                g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+            }
+        }
+    }
+
+    /** 中央のフェーズ名ラベル */
+    private void renderCenterLabel(GuiGraphics g, int cx, int cy) {
+        String text = (phase == Phase.TRAY_SELECT) ? "Tray" : "Item";
+        g.drawCenteredString(this.font, text, cx, cy - this.font.lineHeight / 2, 0xFFAAAAAA);
+    }
+
+    // ---- スケール描画ユーティリティ ------------------------------------------
+
+    /**
+     * アイテムアイコンをスケール付きで中心 (cx, cy) に描画する。
+     * GuiGraphics.renderItem は 16x16 固定なので Pose スタックで拡縮する。
+     */
+    private void renderScaledItem(GuiGraphics g, ItemStack stack, int cx, int cy, float scale) {
+        g.pose().pushPose();
+        g.pose().translate(cx, cy, 0);
+        g.pose().scale(scale, scale, 1.0f);
+        g.renderItem(stack, -8, -8);
+        g.pose().popPose();
+    }
+
+    /** テキストをスケール付きで中心 (cx, cy) に描画する */
+    private void renderScaledCenteredText(GuiGraphics g, String text, int cx, int cy,
+                                          float scale, int color) {
+        g.pose().pushPose();
+        g.pose().translate(cx, cy, 0);
+        g.pose().scale(scale, scale, 1.0f);
+        int tw = this.font.width(text);
+        g.drawString(this.font, text, -tw / 2, -this.font.lineHeight / 2, color, false);
+        g.pose().popPose();
+    }
+
+    // ---- 入力ハンドリング ----------------------------------------------------
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int index = getSelectedIndex((int) mouseX, (int) mouseY);
+        int index = getHoveredIndex((int) mouseX, (int) mouseY);
 
-        if (button == 1) { // 右クリック
+        if (button == 1) { // 右クリック: フェーズを戻す or 閉じる
             if (phase == Phase.ITEM_SELECT) {
-                // フェーズ2 → フェーズ1 に戻る
                 phase = Phase.TRAY_SELECT;
                 selectedTraySlot = -1;
             } else {
@@ -224,30 +339,26 @@ public class RadialMenuScreen extends Screen {
         }
 
         if (button == 0) { // 左クリック
-            if (index == -1) {
-                // 中心クリック → 閉じる
+            if (index == -1) { // 中心 or 外側
                 this.onClose();
                 return true;
             }
-
-            if (index == 0) {
-                // 設定/ユーティリティボタン（スタブ）
+            if (index == 0) { // スタブ
                 return true;
             }
 
-            int slotIndex = index - 1; // 0-8
+            int slot = index - 1;
 
             if (phase == Phase.TRAY_SELECT) {
-                if (!trayStacks[slotIndex].isEmpty()) {
-                    selectedTraySlot = slotIndex;
-                    loadToolStacks(trayStacks[slotIndex]);
+                if (!trayStacks[slot].isEmpty()) {
+                    selectedTraySlot = slot;
+                    loadToolStacks(trayStacks[slot]);
                     phase = Phase.ITEM_SELECT;
                 }
             } else {
-                // フェーズ2: アイテム選択 → 取り出しパケット送信
-                if (!toolStacks[slotIndex].isEmpty()) {
+                if (!toolStacks[slot].isEmpty()) {
                     M2ToolboxNetwork.CHANNEL.sendToServer(
-                            new ExtractItemPacket(toolboxInventorySlot, selectedTraySlot, slotIndex)
+                            new ExtractItemPacket(toolboxInventorySlot, selectedTraySlot, slot)
                     );
                     this.onClose();
                 }
@@ -260,7 +371,8 @@ public class RadialMenuScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scancode, int mods) {
-        if (M2ToolboxClient.OPEN_RADIAL_MENU.get().isActiveAndMatches(InputConstants.getKey(key, scancode))) {
+        if (M2ToolboxClient.OPEN_RADIAL_MENU.get().isActiveAndMatches(
+                InputConstants.getKey(key, scancode))) {
             this.onClose();
             return true;
         }
