@@ -24,6 +24,7 @@ public class LangGen {
         @Override
         protected void addTranslations() {
             add(M2ToolboxKeys.TAB_KEY, "m2toolbox");
+
             addItem(M2ToolboxItems.TOOLBOX, "Toolbox");
             addItem(M2ToolboxItems.TRAY, "Tray");
 
@@ -31,8 +32,10 @@ public class LangGen {
             add(M2ToolboxKeys.KEY_OPEN_RADIAL, "Open Radial Menu");
 
             add(M2ToolboxKeys.ITEM_OVERSTACKED, "Cannot use while overstacked");
-            add(M2ToolboxKeys.GUI_BACK, "Back");
             add(M2ToolboxKeys.RADIAL_HOTBAR_FULL, "Hotbar is full, cannot extract item");
+
+            add(M2ToolboxKeys.GUI_BACK, "Back");
+            add(M2ToolboxKeys.GUI_MENU, "Menu");
 
             add(M2ToolboxKeys.CURIOS_IDENTIFIER, "Toolbox");
         }
@@ -51,8 +54,10 @@ public class LangGen {
             add(M2ToolboxKeys.KEY_OPEN_RADIAL, "ラジアルメニューを開く");
 
             add(M2ToolboxKeys.ITEM_OVERSTACKED, "スタックされた状態では使用できません");
-            add(M2ToolboxKeys.GUI_BACK, "戻る");
             add(M2ToolboxKeys.RADIAL_HOTBAR_FULL, "ホットバーが満杯のため、アイテムを取り出せません");
+
+            add(M2ToolboxKeys.GUI_BACK, "戻る");
+            add(M2ToolboxKeys.GUI_MENU, "メニュー");
 
             add(M2ToolboxKeys.CURIOS_IDENTIFIER, "ツールボックス");
         }

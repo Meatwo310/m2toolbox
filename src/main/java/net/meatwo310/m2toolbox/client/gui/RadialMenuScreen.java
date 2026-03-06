@@ -157,8 +157,14 @@ public class RadialMenuScreen extends Screen {
 
         if (index == 0) {
             String symbol = (phase == Phase.TRAY_SELECT) ? "≡" : "«";
-            int color = selected ? 0xFFFFFFFF : (active ? 0xFFAAAAAA : 0xFF444444);
+            int color = selected ? 0xFFFFFFFF : (active ? 0xFFDDDDDD : 0xFF444444);
             renderScaledCenteredText(g, symbol, cx, cy, scale, color);
+            if (selected) {
+                Component label = (phase == Phase.TRAY_SELECT)
+                        ? Component.translatable("gui.m2toolbox.menu")
+                        : Component.translatable("gui.m2toolbox.back");
+                g.drawCenteredString(this.font, label, cx, cy + 12, 0xFFFFFFFF);
+            }
         } else {
             int slot = index - 1;
             ItemStack stack = (phase == Phase.TRAY_SELECT) ? trayStacks[slot] : toolStacks[slot];
@@ -207,7 +213,7 @@ public class RadialMenuScreen extends Screen {
         g.pose().translate(cx, cy, 0);
         g.pose().scale(scale, scale, 1.0f);
         int tw = this.font.width(text);
-        g.drawString(this.font, text, -tw / 2, -this.font.lineHeight / 2, color, false);
+        g.drawString(this.font, text, -tw / 2, -this.font.lineHeight / 2, color, true);
         g.pose().popPose();
     }
 
