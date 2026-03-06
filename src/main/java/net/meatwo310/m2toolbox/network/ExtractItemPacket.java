@@ -8,6 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetCarriedItemPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -99,6 +100,10 @@ public class ExtractItemPacket {
             // アイテムを移動: トレイから削除 → ホットバーに配置
             playerInv.setItem(destSlot, itemToMove.copy());
             trayHandler.setStackInSlot(trayItemSlot, ItemStack.EMPTY);
+
+            // クライアントにホットバースロットの変更を通知
+            playerInv.selected = destSlot;
+            player.connection.send(new ClientboundSetCarriedItemPacket(destSlot));
 
             // トレイのNBTをtrayStackに書き戻す
             // trayStackはtoolboxHandlerの内部参照なので、ここで更新すれば
