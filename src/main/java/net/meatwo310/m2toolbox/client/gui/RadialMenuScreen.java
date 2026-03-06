@@ -9,10 +9,14 @@ import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.network.ExtractItemPacket;
 import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
 import net.meatwo310.m2toolbox.network.ReopenToolboxPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -230,6 +234,7 @@ public class RadialMenuScreen extends Screen {
             }
 
             if (index == 0) {
+                playSound(SoundEvents.UI_BUTTON_CLICK.get());
                 if (phase == Phase.TRAY_SELECT) {
                     // フェーズ1: ToolboxGUIを開く（Curiosスロット経由）
                     M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket(true));
@@ -245,12 +250,14 @@ public class RadialMenuScreen extends Screen {
             int slot = index - 1;
 
             if (phase == Phase.TRAY_SELECT) {
+                playSound(SoundEvents.UI_BUTTON_CLICK.get());
                 if (!trayStacks[slot].isEmpty()) {
                     selectedTraySlot = slot;
                     loadToolStacks(trayStacks[slot]);
                     phase = Phase.ITEM_SELECT;
                 }
             } else {
+                playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.75F, 1.5F);
                 if (!toolStacks[slot].isEmpty()) {
                     M2ToolboxNetwork.CHANNEL.sendToServer(
                             new ExtractItemPacket(selectedTraySlot, slot)
@@ -262,6 +269,16 @@ public class RadialMenuScreen extends Screen {
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private void playSound(SoundEvent sound) {
+        playSound(sound, 1.0F, 1.0F);
+    }
+
+    private void playSound(SoundEvent sound, float pitch, float volume) {
+        Minecraft.getInstance().getSoundManager().play(
+                SimpleSoundInstance.forUI(sound, pitch, volume)
+        );
     }
 
     @Override
