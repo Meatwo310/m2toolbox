@@ -13,11 +13,11 @@ import net.minecraftforge.network.NetworkHooks;
 import java.util.function.Supplier;
 
 public class ReopenToolboxPacket {
-    public ReopenToolboxPacket(FriendlyByteBuf buf) {
-    }
+    public ReopenToolboxPacket() {}
 
-    public void encode(FriendlyByteBuf buf) {
-    }
+    public ReopenToolboxPacket(FriendlyByteBuf buf) {}
+
+    public void encode(FriendlyByteBuf buf) {}
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
