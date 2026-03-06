@@ -40,7 +40,6 @@ public class RadialMenuScreen extends Screen {
     private Phase phase = Phase.TRAY_SELECT;
 
     // ツールボックス情報（フェーズ1用）
-    private final int       toolboxInventorySlot;
     private final ItemStack toolboxStack;
     private final ItemStack[] trayStacks = new ItemStack[9];
 
@@ -50,10 +49,9 @@ public class RadialMenuScreen extends Screen {
 
     // ---- コンストラクタ -------------------------------------------------------
 
-    public RadialMenuScreen(int toolboxInventorySlot, ItemStack toolboxStack) {
+    public RadialMenuScreen(ItemStack toolboxStack) {
         super(Component.literal("Radial Menu"));
-        this.toolboxInventorySlot = toolboxInventorySlot;
-        this.toolboxStack         = toolboxStack;
+        this.toolboxStack = toolboxStack;
         loadTrayStacks();
     }
 
@@ -248,7 +246,7 @@ public class RadialMenuScreen extends Screen {
             } else {
                 if (!toolStacks[slot].isEmpty()) {
                     M2ToolboxNetwork.CHANNEL.sendToServer(
-                            new ExtractItemPacket(toolboxInventorySlot, selectedTraySlot, slot)
+                            new ExtractItemPacket(selectedTraySlot, slot)
                     );
                     this.onClose();
                 }

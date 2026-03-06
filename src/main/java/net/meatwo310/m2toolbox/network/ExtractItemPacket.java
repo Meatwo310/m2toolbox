@@ -1,6 +1,7 @@
 package net.meatwo310.m2toolbox.network;
 
 import net.meatwo310.m2toolbox.M2ToolboxKeys;
+import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
@@ -17,24 +18,20 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class ExtractItemPacket {
-    private final int toolboxInventorySlot; // プレイヤーインベントリ内スロット 0-35
-    private final int traySlot;             // ツールボックス内のトレイスロット 0-8
-    private final int trayItemSlot;         // トレイ内のtoolスロット 0-8
+    private final int traySlot;     // ツールボックス内のトレイスロット 0-8
+    private final int trayItemSlot; // トレイ内のtoolスロット 0-8
 
-    public ExtractItemPacket(int toolboxInventorySlot, int traySlot, int trayItemSlot) {
-        this.toolboxInventorySlot = toolboxInventorySlot;
+    public ExtractItemPacket(int traySlot, int trayItemSlot) {
         this.traySlot = traySlot;
         this.trayItemSlot = trayItemSlot;
     }
 
     public ExtractItemPacket(FriendlyByteBuf buf) {
-        this.toolboxInventorySlot = buf.readByte();
         this.traySlot = buf.readByte();
         this.trayItemSlot = buf.readByte();
     }
 
     public void encode(FriendlyByteBuf buf) {
-        buf.writeByte(toolboxInventorySlot);
         buf.writeByte(traySlot);
         buf.writeByte(trayItemSlot);
     }
@@ -45,13 +42,12 @@ public class ExtractItemPacket {
             if (player == null) return;
 
             // 範囲チェック
-            if (toolboxInventorySlot < 0 || toolboxInventorySlot >= 36) return;
             if (traySlot < 0 || traySlot >= ToolboxHandler.SLOTS) return;
             if (trayItemSlot < 0 || trayItemSlot >= TrayHandler.TOOL_SLOTS) return;
 
-            // ツールボックス取得・検証
-            ItemStack toolboxStack = player.getInventory().getItem(toolboxInventorySlot);
-            if (toolboxStack.isEmpty() || !toolboxStack.is(M2ToolboxItems.TOOLBOX.get())) return;
+            // CuriosスロットからツールボックスItemStackを取得・検証
+            var toolboxStack = CuriosCompat.getToolboxStack(player).orElse(null);
+            if (toolboxStack == null) return;
 
             // ツールボックスハンドラにNBT読み込み
             ToolboxHandler toolboxHandler = new ToolboxHandler();
@@ -122,6 +118,7 @@ public class ExtractItemPacket {
             }
 
             // ツールボックスのNBTをtoolboxStackに書き戻す
+            // toolboxStackはCuriosハンドラの内部参照なのでタグ変更がそのまま反映される
             boolean toolboxEmpty = true;
             for (int i = 0; i < ToolboxHandler.SLOTS; i++) {
                 if (!toolboxHandler.getStackInSlot(i).isEmpty()) {
