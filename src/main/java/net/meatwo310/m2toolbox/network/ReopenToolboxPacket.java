@@ -52,10 +52,13 @@ public class ReopenToolboxPacket {
             final ItemStack finalStack = toolboxStack;
             NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(
-                            (id, inv, p) -> new ToolboxMenu(id, inv, finalStack),
+                            (id, inv, p) -> new ToolboxMenu(id, inv, finalStack, fromCurios),
                             finalStack.getHoverName()
                     ),
-                    buf -> buf.writeItem(finalStack)
+                    buf -> {
+                        buf.writeItem(finalStack);
+                        buf.writeBoolean(fromCurios);
+                    }
             );
         });
         ctx.get().setPacketHandled(true);

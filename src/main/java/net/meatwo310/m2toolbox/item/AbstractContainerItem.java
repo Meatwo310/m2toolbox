@@ -48,7 +48,10 @@ public abstract class AbstractContainerItem extends Item {
                             (id, inv, p) -> createMenu(id, inv, stack),
                             stack.getHoverName()
                     ),
-                    buf -> buf.writeItem(stack)
+                    buf -> {
+                        buf.writeItem(stack);
+                        buf.writeBoolean(false); // fromCurios
+                    }
             );
         }
 
