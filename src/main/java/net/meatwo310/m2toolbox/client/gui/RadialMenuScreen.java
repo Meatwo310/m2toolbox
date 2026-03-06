@@ -265,7 +265,7 @@ public class RadialMenuScreen extends Screen {
 
         if (index == 0) {
             // 設定 / ユーティリティ（スタブ: ⚙ or ★ をテキスト描画）
-            String symbol = (phase == Phase.TRAY_SELECT) ? "\u2699" : "\u2605";
+            String symbol = (phase == Phase.TRAY_SELECT) ? "⚙" : "★";
             int color = selected ? 0xFFFFFFFF : (active ? 0xFFAAAAAA : 0xFF444444);
             renderScaledCenteredText(g, symbol, cx, cy, scale, color);
         } else {
