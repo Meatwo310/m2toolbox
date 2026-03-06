@@ -156,7 +156,7 @@ public class RadialMenuScreen extends Screen {
         float scale = selected ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
 
         if (index == 0) {
-            String symbol = (phase == Phase.TRAY_SELECT) ? "⚙" : "★";
+            String symbol = (phase == Phase.TRAY_SELECT) ? "≡" : "«";
             int color = selected ? 0xFFFFFFFF : (active ? 0xFFAAAAAA : 0xFF444444);
             renderScaledCenteredText(g, symbol, cx, cy, scale, color);
         } else {
@@ -167,8 +167,8 @@ public class RadialMenuScreen extends Screen {
                 renderScaledItem(g, stack, cx, cy, scale);
                 if (selected) {
                     String name = stack.getHoverName().getString();
-                    if (this.font.width(name) > 60) {
-                        name = this.font.plainSubstrByWidth(name, 57) + "...";
+                    if (this.font.width(name) > 80) {
+                        name = this.font.plainSubstrByWidth(name, 77) + "...";
                     }
                     g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
                 }
