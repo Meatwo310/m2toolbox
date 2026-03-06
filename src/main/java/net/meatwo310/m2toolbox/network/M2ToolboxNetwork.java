@@ -30,5 +30,12 @@ public class M2ToolboxNetwork {
                 ReopenToolboxPacket::new,
                 ReopenToolboxPacket::handle
         );
+        CHANNEL.registerMessage(
+                nextId++,
+                ExtractItemPacket.class,
+                ExtractItemPacket::encode,
+                ExtractItemPacket::new,
+                ExtractItemPacket::handle
+        );
     }
 }
