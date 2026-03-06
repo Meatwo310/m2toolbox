@@ -8,6 +8,7 @@ import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.network.ExtractItemPacket;
 import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
+import net.meatwo310.m2toolbox.network.ReopenToolboxPacket;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
@@ -216,22 +217,22 @@ public class RadialMenuScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         int index = getHoveredIndex((int) mouseX, (int) mouseY);
 
-        if (button == 1) {
-            if (phase == Phase.ITEM_SELECT) {
-                phase = Phase.TRAY_SELECT;
-                selectedTraySlot = -1;
-            } else {
-                this.onClose();
-            }
-            return true;
-        }
-
         if (button == 0) {
             if (index == -1) {
                 this.onClose();
                 return true;
             }
+
             if (index == 0) {
+                if (phase == Phase.TRAY_SELECT) {
+                    // フェーズ1: ToolboxGUIを開く（Curiosスロット経由）
+                    M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket(true));
+                    this.onClose();
+                } else {
+                    // フェーズ2: フェーズ1へ戻る
+                    phase = Phase.TRAY_SELECT;
+                    selectedTraySlot = -1;
+                }
                 return true;
             }
 
