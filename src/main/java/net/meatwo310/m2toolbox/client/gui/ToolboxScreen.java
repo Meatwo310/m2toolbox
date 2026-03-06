@@ -53,6 +53,7 @@ public class ToolboxScreen extends AbstractItemContainerScreen<ToolboxMenu> {
                     .pos(btnX, btnY)
                     .size(BTN_W, BTN_H)
                     .build();
+            btn.visible = isTrayButtonVisible(i);
 
             trayButtons.add(btn);
             this.addRenderableWidget(btn);
@@ -63,7 +64,11 @@ public class ToolboxScreen extends AbstractItemContainerScreen<ToolboxMenu> {
     protected void containerTick() {
         super.containerTick();
         for (int i = 0; i < SLOT_COUNT; i++) {
-            trayButtons.get(i).visible = menu.getSlot(i).getItem().is(M2ToolboxItems.TRAY.get());
+                trayButtons.get(i).visible = isTrayButtonVisible(i);
         }
+    }
+
+    private boolean isTrayButtonVisible(int slotIndex) {
+        return menu.getSlot(slotIndex).getItem().is(M2ToolboxItems.TRAY.get());
     }
 }
