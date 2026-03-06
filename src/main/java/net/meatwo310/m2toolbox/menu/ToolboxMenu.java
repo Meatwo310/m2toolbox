@@ -15,7 +15,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ToolboxMenu extends AbstractItemContainerMenu {
-
     // Client
     public ToolboxMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
         this(containerId, playerInv, extraData.readItem(), extraData.readBoolean());
