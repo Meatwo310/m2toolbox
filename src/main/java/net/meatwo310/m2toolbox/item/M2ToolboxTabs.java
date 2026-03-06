@@ -1,6 +1,7 @@
 package net.meatwo310.m2toolbox.item;
 
 import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -14,7 +15,7 @@ public class M2ToolboxTabs {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, M2Toolbox.MODID);
 
     public static final RegistryObject<CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
-            .title(Component.translatable(M2Toolbox.TAB_KEY))
+            .title(Component.translatable(M2ToolboxKeys.TAB_KEY))
             .icon(() -> new ItemStack(M2ToolboxItems.TOOLBOX.get()))
             .displayItems((params, output) ->
                     M2ToolboxItems.ITEMS.getEntries().forEach(item -> output.accept(item.get()))

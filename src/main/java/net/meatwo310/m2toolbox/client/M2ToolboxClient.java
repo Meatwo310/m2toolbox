@@ -1,7 +1,7 @@
 package net.meatwo310.m2toolbox.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.meatwo310.m2toolbox.client.gui.M2ToolboxScreens;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,11 +16,11 @@ import org.lwjgl.glfw.GLFW;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class M2ToolboxClient {
     public static final Lazy<KeyMapping> OPEN_RADIAL_MENU = Lazy.of(() -> new KeyMapping(
-            M2Toolbox.KEY_OPEN_RADIAL,
+            M2ToolboxKeys.KEY_OPEN_RADIAL,
             KeyConflictContext.UNIVERSAL,
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_R,
-            M2Toolbox.KEY_CATEGORY
+            M2ToolboxKeys.KEY_CATEGORY
     ));
 
     @SubscribeEvent

@@ -1,6 +1,6 @@
 package net.meatwo310.m2toolbox.item;
 
-import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
@@ -34,7 +34,7 @@ public abstract class AbstractContainerItem extends Item {
         if (stack.getCount() > 1) {
             if (!level.isClientSide) {
                 player.sendSystemMessage(Component
-                        .translatable(M2Toolbox.ITEM_OVERSTACKED)
+                        .translatable(M2ToolboxKeys.ITEM_OVERSTACKED)
                         .withStyle(ChatFormatting.RED)
                 );
             }

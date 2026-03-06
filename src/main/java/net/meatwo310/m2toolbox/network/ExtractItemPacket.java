@@ -1,6 +1,6 @@
 package net.meatwo310.m2toolbox.network;
 
-import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
@@ -91,7 +91,7 @@ public class ExtractItemPacket {
             // すべて埋まっていた場合はキャンセル
             if (destSlot == -1) {
                 player.sendSystemMessage(
-                        Component.translatable(M2Toolbox.RADIAL_HOTBAR_FULL)
+                        Component.translatable(M2ToolboxKeys.RADIAL_HOTBAR_FULL)
                                 .withStyle(ChatFormatting.RED)
                 );
                 return;

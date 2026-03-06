@@ -15,18 +15,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 public class M2Toolbox {
     public static final String MODID = "m2toolbox";
 
-    public static final String TAB_KEY = "itemGroup." + MODID;
-
-    public static final String KEY_OPEN_RADIAL = "key." + MODID + ".open_radial";
-    public static final String KEY_CATEGORY = "key.categories." + MODID;
-
-    public static final String ITEM_OVERSTACKED = "item." + MODID + ".overstacked";
-
-    public static final String GUI_BACK = "gui." + MODID + ".back";
-    public static final String RADIAL_HOTBAR_FULL = "gui." + MODID + ".radial_hotbar_full";
-
-    public static final String CURIOS_IDENTIFIER = "curios.identifier." + MODID;
-
     public M2Toolbox(FMLJavaModLoadingContext ctx) {
         IEventBus bus = ctx.getModEventBus();
 

@@ -1,6 +1,7 @@
 package net.meatwo310.m2toolbox.client.gui;
 
 import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.menu.TrayMenu;
 import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
@@ -43,7 +44,7 @@ public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
             int btnY = this.topPos + BACK_BTN_Y_OFFSET;
 
             this.addRenderableWidget(
-                    Button.builder(Component.translatable(M2Toolbox.GUI_BACK), b ->
+                    Button.builder(Component.translatable(M2ToolboxKeys.GUI_BACK), b ->
                                     M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket()))
                             .pos(btnX, btnY)
                             .size(BACK_BTN_W, BACK_BTN_H)
