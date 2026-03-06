@@ -20,15 +20,15 @@ public class OpenTrayPacket {
         this.slotIndex = slotIndex;
     }
 
-    public static void encode(OpenTrayPacket packet, FriendlyByteBuf buf) {
-        buf.writeByte(packet.slotIndex);
+    public OpenTrayPacket(FriendlyByteBuf buf) {
+        this(buf.readByte());
     }
 
-    public static OpenTrayPacket decode(FriendlyByteBuf buf) {
-        return new OpenTrayPacket(buf.readByte());
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeByte(slotIndex);
     }
 
-    public static void handle(OpenTrayPacket packet, Supplier<NetworkEvent.Context> ctx) {
+    public void handle(Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
@@ -36,8 +36,7 @@ public class OpenTrayPacket {
             ItemStack toolboxStack = findToolbox(player);
             if (toolboxStack.isEmpty()) return;
 
-            int slot = packet.slotIndex;
-            if (slot < 0 || slot >= ToolboxHandler.SLOTS) return;
+            if (slotIndex < 0 || slotIndex >= ToolboxHandler.SLOTS) return;
 
             ToolboxHandler handler = new ToolboxHandler();
             CompoundTag tag = toolboxStack.getTag();
@@ -45,12 +44,12 @@ public class OpenTrayPacket {
                 handler.deserializeNBT(tag.getCompound("Items"));
             }
 
-            ItemStack trayStack = handler.getStackInSlot(slot);
+            ItemStack trayStack = handler.getStackInSlot(slotIndex);
             if (trayStack.isEmpty() || !trayStack.is(M2ToolboxItems.TRAY.get())) return;
 
             NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(
-                            (id, inv, p) -> new TrayMenu(id, inv, trayStack, toolboxStack, slot),
+                            (id, inv, p) -> new TrayMenu(id, inv, trayStack, toolboxStack, slotIndex),
                             trayStack.getHoverName()
                     ),
                     buf -> {
@@ -64,9 +63,15 @@ public class OpenTrayPacket {
 
     private static ItemStack findToolbox(ServerPlayer player) {
         ItemStack main = player.getMainHandItem();
-        if (main.is(M2ToolboxItems.TOOLBOX.get())) return main;
+        if (main.is(M2ToolboxItems.TOOLBOX.get())) {
+            return main;
+        }
+
         ItemStack off = player.getOffhandItem();
-        if (off.is(M2ToolboxItems.TOOLBOX.get())) return off;
+        if (off.is(M2ToolboxItems.TOOLBOX.get())) {
+            return off;
+        }
+
         return ItemStack.EMPTY;
     }
 }
