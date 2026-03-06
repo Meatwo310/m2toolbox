@@ -1,5 +1,6 @@
 package net.meatwo310.m2toolbox.compat.curios;
 
+import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -19,8 +20,11 @@ public class CuriosCompat {
 
     private static Optional<ItemStack> getFirstStack(ICurioStacksHandler slot) {
         var stacks = slot.getStacks();
-        return stacks.getSlots() > 0
-                ? Optional.of(stacks.getStackInSlot(0))
-                : Optional.empty();
+        if (stacks.getSlots() <= 0) {
+            return Optional.empty();
+        }
+
+        return Optional.of(stacks.getStackInSlot(0))
+                .filter(stack -> stack.is(M2ToolboxItems.TOOLBOX.get()));
     }
 }
