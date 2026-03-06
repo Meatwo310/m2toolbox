@@ -40,10 +40,8 @@ public class RadialMenuScreen extends Screen {
     private static final float[] COLOR_BG_RING  = { 0.05f, 0.05f, 0.05f, 0.72f };
 
     // コンテンツ位置のパラメータ
-    /** 通常時のアイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
+    /** アイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
     private static final float CONTENT_RADIUS_RATIO = 0.60f;
-    /** 選択時に外側へ押し出す追加ピクセル数 */
-    private static final int   CONTENT_PUSH_PX      = 5;
     /** 選択時のアイコンスケール */
     private static final float ICON_SCALE_SELECTED  = 1.35f;
     /** 通常時のアイコンスケール */
@@ -158,6 +156,7 @@ public class RadialMenuScreen extends Screen {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
+        RenderSystem.disableDepthTest();
 
         // 1. 背景リング（セクター全体を覆う単一の暗い円）
         renderBackgroundRing(guiGraphics, cx, cy, radius, innerRadius);
@@ -165,6 +164,7 @@ public class RadialMenuScreen extends Screen {
         // 2. 各セクターの塗り
         renderSegments(guiGraphics, cx, cy, radius, innerRadius, hovered);
 
+        RenderSystem.enableDepthTest();
         RenderSystem.disableBlend();
 
         // 3. アイコン・ラベル（Pose スタックで拡縮するため blend 外で可）
@@ -248,9 +248,8 @@ public class RadialMenuScreen extends Screen {
             double[] angles = sectorAngles(i, radius, false);
             double midAngle = (angles[0] + angles[1]) / 2.0;
 
-            // コンテンツ中心: innerRadius〜radius の CONTENT_RADIUS_RATIO 地点
-            float baseRadius    = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
-            float contentRadius = baseRadius + (selected ? CONTENT_PUSH_PX : 0);
+            // コンテンツ中心: innerRadius〜radius の CONTENT_RADIUS_RATIO 地点（選択状態に関わらず固定）
+            float contentRadius = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
 
             int iconCx = (int)(cx + Math.cos(midAngle) * contentRadius);
             int iconCy = (int)(cy + Math.sin(midAngle) * contentRadius);
