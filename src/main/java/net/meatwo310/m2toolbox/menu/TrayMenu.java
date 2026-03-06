@@ -18,39 +18,32 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class TrayMenu extends AbstractItemContainerMenu {
-    @Nullable
-    private ItemStack toolboxStack = null;
-    private int toolboxSlotIndex = -1;
-    private boolean fromToolbox = false;
+    public static final byte INVALID_INDEX = -1;
+
+    public final @Nullable ItemStack toolboxStack;
+    public final byte toolboxSlotIndex;
 
     // Client
-    public TrayMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
-        this(containerId, playerInv, extraData.readItem(), extraData.readBoolean());
-        this.fromToolbox = extraData.readBoolean();
-        if (this.fromToolbox) {
-            this.toolboxSlotIndex = extraData.readByte();
-        }
+    public TrayMenu(int containerId, Inventory playerInv, FriendlyByteBuf buf) {
+        this(containerId, playerInv, buf.readItem(), buf.readBoolean(), null, buf.readByte());
     }
 
     // Server - 直接開く場合
-    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, boolean fromCurios) {
-        super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, trayStack, fromCurios);
+    public TrayMenu(int id, Inventory inv, ItemStack stack, boolean fromCurios) {
+        this(id, inv, stack, fromCurios, null, INVALID_INDEX);
     }
 
     // Server - Toolbox経由で開く場合
-    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, boolean fromCurios, ItemStack toolboxStack, int toolboxSlotIndex) {
+    public TrayMenu(int containerId, Inventory playerInv,
+                    ItemStack trayStack, boolean fromCurios,
+                    @Nullable ItemStack toolboxStack, int toolboxSlotIndex) {
         super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, trayStack, fromCurios);
-        this.toolboxStack = toolboxStack;
-        this.toolboxSlotIndex = toolboxSlotIndex;
-        this.fromToolbox = true;
+        this.toolboxStack     = toolboxStack;
+        this.toolboxSlotIndex = (byte) toolboxSlotIndex;
     }
 
     public boolean isFromToolbox() {
-        return fromToolbox;
-    }
-
-    public int getToolboxSlotIndex() {
-        return toolboxSlotIndex;
+        return toolboxSlotIndex != INVALID_INDEX;
     }
 
     @Override

@@ -26,7 +26,7 @@ public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
 
     public TrayScreen(TrayMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, menu.isFromToolbox()
-                ? AbstractContainerItem.getCustomOrIndexedName(menu.containerStack, menu.getToolboxSlotIndex())
+                ? AbstractContainerItem.getCustomOrIndexedName(menu.containerStack, menu.toolboxSlotIndex)
                 : title);
     }
 

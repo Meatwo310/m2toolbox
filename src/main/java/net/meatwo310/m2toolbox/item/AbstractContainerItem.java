@@ -3,6 +3,7 @@ package net.meatwo310.m2toolbox.item;
 import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.minecraft.ChatFormatting;
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -27,6 +28,12 @@ public abstract class AbstractContainerItem extends Item {
 
     protected abstract AbstractContainerMenu createMenu(int id, Inventory inv, ItemStack stack);
 
+    protected void writeBuf(FriendlyByteBuf buf, ItemStack stack) {
+        buf.writeItem(stack);
+        buf.writeBoolean(false); // fromCurios
+    }
+
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -48,11 +55,7 @@ public abstract class AbstractContainerItem extends Item {
                             (id, inv, p) -> createMenu(id, inv, stack),
                             stack.getHoverName()
                     ),
-                    buf -> {
-                        buf.writeItem(stack);
-                        buf.writeBoolean(false); // fromToolbox (TrayMenu) / ignored by ToolboxMenu
-                        buf.writeBoolean(false); // fromCurios
-                    }
+                    buf -> writeBuf(buf, stack)
             );
         }
 

@@ -59,7 +59,6 @@ public class OpenTrayPacket {
                     buf -> {
                         buf.writeItem(trayStack);
                         buf.writeBoolean(fromCurios);
-                        buf.writeBoolean(true); // fromToolbox
                         buf.writeByte(slotIndex);
                     }
             );
