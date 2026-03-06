@@ -180,8 +180,15 @@ public class RadialMenuScreen extends Screen {
 
     /** 中央のフェーズ名ラベル */
     private void renderCenterLabel(GuiGraphics g, int cx, int cy) {
-        String text = (phase == Phase.TRAY_SELECT) ? "Tray" : "Item";
-        g.drawCenteredString(this.font, text, cx, cy - this.font.lineHeight / 2, 0xFFAAAAAA);
+        Component text;
+        if (phase == Phase.TRAY_SELECT) {
+            text = toolboxStack.getHoverName();
+        } else if (selectedTraySlot >= 0 && selectedTraySlot < trayStacks.length) {
+            text = trayStacks[selectedTraySlot].getHoverName();
+        } else {
+            text = Component.literal("?");
+        }
+        g.drawCenteredString(this.font, text, cx, cy + this.font.lineHeight, 0xFFFFFFFF);
     }
 
     // ---- スケール描画ユーティリティ ------------------------------------------
