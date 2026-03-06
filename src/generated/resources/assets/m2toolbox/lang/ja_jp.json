@@ -1,4 +1,5 @@
 {
+  "curios.identifier.m2toolbox": "ツールボックス",
   "gui.m2toolbox.back": "戻る",
   "gui.m2toolbox.radial_hotbar_full": "ホットバーが満杯のため、アイテムを取り出せません",
   "item.m2toolbox.overstacked": "スタックされた状態では使用できません",

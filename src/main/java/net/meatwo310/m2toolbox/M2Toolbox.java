@@ -25,6 +25,8 @@ public class M2Toolbox {
     public static final String GUI_BACK = "gui." + MODID + ".back";
     public static final String RADIAL_HOTBAR_FULL = "gui." + MODID + ".radial_hotbar_full";
 
+    public static final String CURIOS_IDENTIFIER = "curios.identifier." + MODID;
+
     public M2Toolbox(FMLJavaModLoadingContext ctx) {
         IEventBus bus = ctx.getModEventBus();
 

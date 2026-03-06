@@ -1,4 +1,5 @@
 {
+  "curios.identifier.m2toolbox": "Toolbox",
   "gui.m2toolbox.back": "Back",
   "gui.m2toolbox.radial_hotbar_full": "Hotbar is full, cannot extract item",
   "item.m2toolbox.overstacked": "Cannot use while overstacked",

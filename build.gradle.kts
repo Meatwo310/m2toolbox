@@ -30,6 +30,9 @@ object ModConfig {
     const val MOD_DESCRIPTION = ""
     const val MOD_DISPLAY_URL = "https://github.com/Meatwo310/m2toolbox"
     const val MOD_CREDITS = ""
+
+    const val CURIOS_VERSION = "5.14.1+1.20.1"
+    const val CURIOS_VERSION_RANGE = "+"
 }
 
 version = "v${ModConfig.MOD_VERSION}"
@@ -152,6 +155,11 @@ repositories {
             includeGroup("curse.maven")
         }
     }
+
+    maven {
+        name = "Illusive Soulworks maven"
+        url = uri("https://maven.theillusivec4.top/")
+    }
 }
 
 dependencies {
@@ -172,6 +180,8 @@ dependencies {
     runtimeOnly(fg.deobf("curse.maven:jei-integration-265917:4999754"))
 
     // Mod Dependencies
+    compileOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${ModConfig.CURIOS_VERSION}:api"))
+    runtimeOnly(fg.deobf("top.theillusivec4.curios:curios-forge:${ModConfig.CURIOS_VERSION}"))
 }
 
 mixin {
@@ -193,7 +203,8 @@ tasks.named<ProcessResources>("processResources") {
         "mod_authors" to ModConfig.MOD_AUTHORS,
         "mod_description" to ModConfig.MOD_DESCRIPTION,
         "mod_display_url" to ModConfig.MOD_DISPLAY_URL,
-        "mod_credits" to ModConfig.MOD_CREDITS
+        "mod_credits" to ModConfig.MOD_CREDITS,
+        "curios_version_range" to ModConfig.CURIOS_VERSION_RANGE,
     )
 
     inputs.properties(replaceProperties)
