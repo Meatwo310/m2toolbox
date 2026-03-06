@@ -15,7 +15,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public abstract class AbstractItemContainerMenu extends AbstractContainerMenu {
-    protected final ItemStack containerStack;
+    public final ItemStack containerStack;
     protected final ItemStackHandler inventory;
 
     protected AbstractItemContainerMenu(MenuType<?> type, int id, Inventory playerInv, ItemStack containerStack) {

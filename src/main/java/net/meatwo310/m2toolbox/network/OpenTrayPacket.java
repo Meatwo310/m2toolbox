@@ -55,6 +55,7 @@ public class OpenTrayPacket {
                     buf -> {
                         buf.writeItem(trayStack);
                         buf.writeBoolean(true); // fromToolbox
+                        buf.writeByte(slotIndex);
                     }
             );
         });

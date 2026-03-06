@@ -5,6 +5,7 @@ import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
+import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.network.ExtractItemPacket;
 import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
 import net.minecraft.client.gui.GuiGraphics;
@@ -184,7 +185,7 @@ public class RadialMenuScreen extends Screen {
         if (phase == Phase.TRAY_SELECT) {
             text = toolboxStack.getHoverName();
         } else if (selectedTraySlot >= 0 && selectedTraySlot < trayStacks.length) {
-            text = trayStacks[selectedTraySlot].getHoverName();
+            text = AbstractContainerItem.getCustomOrIndexedName(trayStacks[selectedTraySlot], selectedTraySlot);
         } else {
             text = Component.literal("?");
         }

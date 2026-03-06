@@ -54,4 +54,17 @@ public abstract class AbstractContainerItem extends Item {
 
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
     }
+
+    public static Component getCustomOrIndexedName(ItemStack stack, int index) {
+        return getCustomOrIndexedName(stack, index, " %d");
+    }
+
+    public static Component getCustomOrIndexedName(ItemStack stack, int index, String format) {
+        var name = stack.getHoverName();
+        if (stack.hasCustomHoverName()) {
+            return name;
+        } else {
+            return name.copy().append(format.formatted(index + 1));
+        }
+    }
 }

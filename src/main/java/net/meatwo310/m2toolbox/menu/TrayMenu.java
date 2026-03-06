@@ -26,10 +26,17 @@ public class TrayMenu extends AbstractItemContainerMenu {
     public TrayMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
         this(containerId, playerInv, extraData.readItem());
         this.fromToolbox = extraData.readBoolean();
+        if (this.fromToolbox) {
+            this.toolboxSlotIndex = extraData.readByte();
+        }
     }
 
     public boolean isFromToolbox() {
         return fromToolbox;
+    }
+
+    public int getToolboxSlotIndex() {
+        return toolboxSlotIndex;
     }
 
     // Server - 直接開く場合

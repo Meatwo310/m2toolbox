@@ -1,6 +1,7 @@
 package net.meatwo310.m2toolbox.client.gui;
 
 import net.meatwo310.m2toolbox.M2Toolbox;
+import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.menu.TrayMenu;
 import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
 import net.meatwo310.m2toolbox.network.ReopenToolboxPacket;
@@ -23,7 +24,9 @@ public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
     private static final int BACK_BTN_Y_OFFSET = 4;
 
     public TrayScreen(TrayMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
+        super(menu, playerInventory, menu.isFromToolbox()
+                ? AbstractContainerItem.getCustomOrIndexedName(menu.containerStack, menu.getToolboxSlotIndex())
+                : title);
     }
 
     @Override
