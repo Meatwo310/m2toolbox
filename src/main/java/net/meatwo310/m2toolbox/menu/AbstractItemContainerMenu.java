@@ -17,13 +17,14 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class AbstractItemContainerMenu extends AbstractContainerMenu {
     public final ItemStack containerStack;
     protected final ItemStackHandler inventory;
-    protected boolean fromCurios = false;
+    protected boolean fromCurios;
 
     public boolean isFromCurios() { return fromCurios; }
 
-    protected AbstractItemContainerMenu(MenuType<?> type, int id, Inventory playerInv, ItemStack containerStack) {
+    protected AbstractItemContainerMenu(MenuType<?> type, int id, Inventory playerInv, ItemStack containerStack, boolean fromCurios) {
         super(type, id);
         this.containerStack = containerStack;
+        this.fromCurios = fromCurios;
         this.inventory = createHandler();
         loadNBT();
         layoutContainerSlots();

@@ -25,12 +25,24 @@ public class TrayMenu extends AbstractItemContainerMenu {
 
     // Client
     public TrayMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
-        this(containerId, playerInv, extraData.readItem());
+        this(containerId, playerInv, extraData.readItem(), extraData.readBoolean());
         this.fromToolbox = extraData.readBoolean();
         if (this.fromToolbox) {
             this.toolboxSlotIndex = extraData.readByte();
         }
-        this.fromCurios = extraData.readBoolean();
+    }
+
+    // Server - 直接開く場合
+    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, boolean fromCurios) {
+        super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, trayStack, fromCurios);
+    }
+
+    // Server - Toolbox経由で開く場合
+    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, boolean fromCurios, ItemStack toolboxStack, int toolboxSlotIndex) {
+        super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, trayStack, fromCurios);
+        this.toolboxStack = toolboxStack;
+        this.toolboxSlotIndex = toolboxSlotIndex;
+        this.fromToolbox = true;
     }
 
     public boolean isFromToolbox() {
@@ -39,25 +51,6 @@ public class TrayMenu extends AbstractItemContainerMenu {
 
     public int getToolboxSlotIndex() {
         return toolboxSlotIndex;
-    }
-
-    // Server - 直接開く場合
-    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack) {
-        super(M2ToolboxMenus.TRAY_MENU.get(), containerId, playerInv, trayStack);
-    }
-
-    // Server - Toolbox経由で開く場合
-    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, ItemStack toolboxStack, int toolboxSlotIndex) {
-        this(containerId, playerInv, trayStack);
-        this.toolboxStack = toolboxStack;
-        this.toolboxSlotIndex = toolboxSlotIndex;
-        this.fromToolbox = true;
-    }
-
-    // Server - Toolbox（Curios）経由で開く場合
-    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, ItemStack toolboxStack, int toolboxSlotIndex, boolean fromCurios) {
-        this(containerId, playerInv, trayStack, toolboxStack, toolboxSlotIndex);
-        this.fromCurios = fromCurios;
     }
 
     @Override

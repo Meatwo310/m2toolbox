@@ -21,15 +21,9 @@ public class ToolboxMenu extends AbstractItemContainerMenu {
         this(containerId, playerInv, extraData.readItem(), extraData.readBoolean());
     }
 
-    // Server - 手持ち経由
-    public ToolboxMenu(int containerId, Inventory playerInv, ItemStack toolboxStack) {
-        super(M2ToolboxMenus.TOOLBOX_MENU.get(), containerId, playerInv, toolboxStack);
-    }
-
-    // Server - Curios経由
+    // Server
     public ToolboxMenu(int containerId, Inventory playerInv, ItemStack toolboxStack, boolean fromCurios) {
-        this(containerId, playerInv, toolboxStack);
-        this.fromCurios = fromCurios;
+        super(M2ToolboxMenus.TOOLBOX_MENU.get(), containerId, playerInv, toolboxStack, fromCurios);
     }
 
     @Override

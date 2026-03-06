@@ -53,14 +53,14 @@ public class OpenTrayPacket {
 
             NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(
-                            (id, inv, p) -> new TrayMenu(id, inv, trayStack, toolboxStack, slotIndex, fromCurios),
+                            (id, inv, p) -> new TrayMenu(id, inv, trayStack, fromCurios, toolboxStack, slotIndex),
                             trayStack.getHoverName()
                     ),
                     buf -> {
                         buf.writeItem(trayStack);
+                        buf.writeBoolean(fromCurios);
                         buf.writeBoolean(true); // fromToolbox
                         buf.writeByte(slotIndex);
-                        buf.writeBoolean(fromCurios);
                     }
             );
         });

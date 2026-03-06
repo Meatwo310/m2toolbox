@@ -16,6 +16,6 @@ public class TrayItem extends AbstractContainerItem {
     }
 
     protected AbstractContainerMenu createMenu(int id, Inventory inv, ItemStack stack) {
-        return new TrayMenu(id, inv, stack);
+        return new TrayMenu(id, inv, stack, false);
     }
 }
