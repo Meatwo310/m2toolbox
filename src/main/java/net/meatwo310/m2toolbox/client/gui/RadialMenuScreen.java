@@ -43,7 +43,7 @@ public class RadialMenuScreen extends Screen {
     /** アイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
     private static final float CONTENT_RADIUS_RATIO = 0.60f;
     /** 選択時のアイコンスケール */
-    private static final float ICON_SCALE_SELECTED  = 1.35f;
+    private static final float ICON_SCALE_SELECTED  = 1.25f;
     /** 通常時のアイコンスケール */
     private static final float ICON_SCALE_NORMAL    = 1.00f;
 
