@@ -45,7 +45,7 @@ public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
 
             this.addRenderableWidget(
                     Button.builder(Component.translatable(M2ToolboxKeys.GUI_BACK), b ->
-                                    M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket(false)))
+                                    M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket(menu.isFromCurios())))
                             .pos(btnX, btnY)
                             .size(BACK_BTN_W, BACK_BTN_H)
                             .build()

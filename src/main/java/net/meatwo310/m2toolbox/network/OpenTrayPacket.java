@@ -1,5 +1,6 @@
 package net.meatwo310.m2toolbox.network;
 
+import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.meatwo310.m2toolbox.menu.TrayMenu;
@@ -15,17 +16,20 @@ import java.util.function.Supplier;
 
 public class OpenTrayPacket {
     private final int slotIndex;
+    private final boolean fromCurios;
 
-    public OpenTrayPacket(int slotIndex) {
+    public OpenTrayPacket(int slotIndex, boolean fromCurios) {
         this.slotIndex = slotIndex;
+        this.fromCurios = fromCurios;
     }
 
     public OpenTrayPacket(FriendlyByteBuf buf) {
-        this(buf.readByte());
+        this(buf.readByte(), buf.readBoolean());
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeByte(slotIndex);
+        buf.writeBoolean(fromCurios);
     }
 
     public void handle(Supplier<NetworkEvent.Context> ctx) {
@@ -49,29 +53,30 @@ public class OpenTrayPacket {
 
             NetworkHooks.openScreen(player,
                     new SimpleMenuProvider(
-                            (id, inv, p) -> new TrayMenu(id, inv, trayStack, toolboxStack, slotIndex),
+                            (id, inv, p) -> new TrayMenu(id, inv, trayStack, toolboxStack, slotIndex, fromCurios),
                             trayStack.getHoverName()
                     ),
                     buf -> {
                         buf.writeItem(trayStack);
                         buf.writeBoolean(true); // fromToolbox
                         buf.writeByte(slotIndex);
+                        buf.writeBoolean(fromCurios);
                     }
             );
         });
         ctx.get().setPacketHandled(true);
     }
 
-    private static ItemStack findToolbox(ServerPlayer player) {
-        ItemStack main = player.getMainHandItem();
-        if (main.is(M2ToolboxItems.TOOLBOX.get())) {
-            return main;
+    private ItemStack findToolbox(ServerPlayer player) {
+        if (fromCurios) {
+            return CuriosCompat.getToolboxStack(player).orElse(ItemStack.EMPTY);
         }
 
+        ItemStack main = player.getMainHandItem();
+        if (main.is(M2ToolboxItems.TOOLBOX.get())) return main;
+
         ItemStack off = player.getOffhandItem();
-        if (off.is(M2ToolboxItems.TOOLBOX.get())) {
-            return off;
-        }
+        if (off.is(M2ToolboxItems.TOOLBOX.get())) return off;
 
         return ItemStack.EMPTY;
     }

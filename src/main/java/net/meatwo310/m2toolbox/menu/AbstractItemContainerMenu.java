@@ -17,6 +17,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class AbstractItemContainerMenu extends AbstractContainerMenu {
     public final ItemStack containerStack;
     protected final ItemStackHandler inventory;
+    protected boolean fromCurios = false;
+
+    public boolean isFromCurios() { return fromCurios; }
 
     protected AbstractItemContainerMenu(MenuType<?> type, int id, Inventory playerInv, ItemStack containerStack) {
         super(type, id);

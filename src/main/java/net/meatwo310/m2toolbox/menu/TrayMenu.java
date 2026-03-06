@@ -1,5 +1,6 @@
 package net.meatwo310.m2toolbox.menu;
 
+import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -29,6 +30,7 @@ public class TrayMenu extends AbstractItemContainerMenu {
         if (this.fromToolbox) {
             this.toolboxSlotIndex = extraData.readByte();
         }
+        this.fromCurios = extraData.readBoolean();
     }
 
     public boolean isFromToolbox() {
@@ -49,11 +51,23 @@ public class TrayMenu extends AbstractItemContainerMenu {
         this(containerId, playerInv, trayStack);
         this.toolboxStack = toolboxStack;
         this.toolboxSlotIndex = toolboxSlotIndex;
+        this.fromToolbox = true;
+    }
+
+    // Server - Toolbox（Curios）経由で開く場合
+    public TrayMenu(int containerId, Inventory playerInv, ItemStack trayStack, ItemStack toolboxStack, int toolboxSlotIndex, boolean fromCurios) {
+        this(containerId, playerInv, trayStack, toolboxStack, toolboxSlotIndex);
+        this.fromCurios = fromCurios;
     }
 
     @Override
     public boolean stillValid(Player player) {
         if (toolboxStack != null) {
+            if (fromCurios) {
+                return CuriosCompat.getToolboxStack(player)
+                        .map(s -> s == toolboxStack)
+                        .orElse(false);
+            }
             return player.getMainHandItem() == toolboxStack || player.getOffhandItem() == toolboxStack;
         }
         return super.stillValid(player);

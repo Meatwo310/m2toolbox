@@ -15,16 +15,20 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public class ToolboxMenu extends AbstractItemContainerMenu {
-    private final boolean fromCurios;
 
     // Client
     public ToolboxMenu(int containerId, Inventory playerInv, FriendlyByteBuf extraData) {
         this(containerId, playerInv, extraData.readItem(), extraData.readBoolean());
     }
 
-    // Server
-    public ToolboxMenu(int containerId, Inventory playerInv, ItemStack toolboxStack, boolean fromCurios) {
+    // Server - 手持ち経由
+    public ToolboxMenu(int containerId, Inventory playerInv, ItemStack toolboxStack) {
         super(M2ToolboxMenus.TOOLBOX_MENU.get(), containerId, playerInv, toolboxStack);
+    }
+
+    // Server - Curios経由
+    public ToolboxMenu(int containerId, Inventory playerInv, ItemStack toolboxStack, boolean fromCurios) {
+        this(containerId, playerInv, toolboxStack);
         this.fromCurios = fromCurios;
     }
 

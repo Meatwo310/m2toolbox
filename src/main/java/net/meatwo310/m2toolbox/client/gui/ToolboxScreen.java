@@ -49,7 +49,7 @@ public class ToolboxScreen extends AbstractItemContainerScreen<ToolboxMenu> {
             int btnX = this.leftPos + slotIndex * 18 + SLOT_START_X + 8 - BTN_W / 2;
 
             Button btn = Button.builder(Component.literal("▼"), b ->
-                            M2ToolboxNetwork.CHANNEL.sendToServer(new OpenTrayPacket(slotIndex)))
+                            M2ToolboxNetwork.CHANNEL.sendToServer(new OpenTrayPacket(slotIndex, menu.isFromCurios())))
                     .pos(btnX, btnY)
                     .size(BTN_W, BTN_H)
                     .build();

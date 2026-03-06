@@ -50,6 +50,7 @@ public abstract class AbstractContainerItem extends Item {
                     ),
                     buf -> {
                         buf.writeItem(stack);
+                        buf.writeBoolean(false); // fromToolbox (TrayMenu) / ignored by ToolboxMenu
                         buf.writeBoolean(false); // fromCurios
                     }
             );
