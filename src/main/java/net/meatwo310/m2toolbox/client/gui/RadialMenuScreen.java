@@ -166,10 +166,10 @@ public class RadialMenuScreen extends Screen {
             if (!stack.isEmpty()) {
                 renderScaledItem(g, stack, cx, cy, scale);
                 if (selected) {
-                    String name = stack.getHoverName().getString();
-                    if (this.font.width(name) > 80) {
-                        name = this.font.plainSubstrByWidth(name, 77) + "...";
-                    }
+                    Component name = switch (phase) {
+                        case TRAY_SELECT -> AbstractContainerItem.getCustomOrIndexedName(stack, slot);
+                        case ITEM_SELECT -> stack.getHoverName();
+                    };
                     g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
                 }
             } else {
