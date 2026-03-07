@@ -4,7 +4,7 @@ import net.meatwo310.m2toolbox.M2Toolbox;
 import net.meatwo310.m2toolbox.M2ToolboxKeys;
 import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.menu.TrayMenu;
-import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
+import net.meatwo310.m2toolbox.network.M2ToolboxNetworks;
 import net.meatwo310.m2toolbox.network.ReopenToolboxPacket;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.gui.components.Button;
@@ -45,7 +45,7 @@ public class TrayScreen extends AbstractItemContainerScreen<TrayMenu> {
 
             this.addRenderableWidget(
                     Button.builder(Component.translatable(M2ToolboxKeys.GUI_BACK), b ->
-                                    M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket(menu.fromCurios)))
+                                    M2ToolboxNetworks.CHANNEL.sendToServer(new ReopenToolboxPacket(menu.fromCurios)))
                             .pos(btnX, btnY)
                             .size(BACK_BTN_W, BACK_BTN_H)
                             .build()

@@ -8,7 +8,7 @@ import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.network.ExtractItemPacket;
-import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
+import net.meatwo310.m2toolbox.network.M2ToolboxNetworks;
 import net.meatwo310.m2toolbox.network.ReopenToolboxPacket;
 import net.meatwo310.m2toolbox.network.StoreItemPacket;
 import net.minecraft.client.Minecraft;
@@ -259,7 +259,7 @@ public class RadialMenuScreen extends Screen {
                 playSound(SoundEvents.UI_BUTTON_CLICK.get());
                 if (phase == Phase.TRAY_SELECT) {
                     // フェーズ1: ToolboxGUIを開く（Curiosスロット経由）
-                    M2ToolboxNetwork.CHANNEL.sendToServer(new ReopenToolboxPacket(true));
+                    M2ToolboxNetworks.CHANNEL.sendToServer(new ReopenToolboxPacket(true));
                     this.onClose();
                 } else {
                     // フェーズ2: フェーズ1へ戻る
@@ -281,7 +281,7 @@ public class RadialMenuScreen extends Screen {
             } else {
                 if (!toolStacks[slot].isEmpty()) {
                     playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.75F, 1.5F);
-                    M2ToolboxNetwork.CHANNEL.sendToServer(
+                    M2ToolboxNetworks.CHANNEL.sendToServer(
                             new ExtractItemPacket(selectedTraySlot, slot)
                     );
                     this.onClose();
@@ -291,7 +291,7 @@ public class RadialMenuScreen extends Screen {
                     ItemStack mainHandItem = Minecraft.getInstance().player.getMainHandItem();
                     if (!mainHandItem.isEmpty()) {
                         playSound(SoundEvents.BUNDLE_INSERT, 0.75F, 1.0F);
-                        M2ToolboxNetwork.CHANNEL.sendToServer(
+                        M2ToolboxNetworks.CHANNEL.sendToServer(
                                 new StoreItemPacket(selectedTraySlot, slot)
                         );
                         this.onClose();

@@ -3,7 +3,7 @@ package net.meatwo310.m2toolbox.client.gui;
 import net.meatwo310.m2toolbox.M2Toolbox;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.meatwo310.m2toolbox.menu.ToolboxMenu;
-import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
+import net.meatwo310.m2toolbox.network.M2ToolboxNetworks;
 import net.meatwo310.m2toolbox.network.OpenTrayPacket;
 import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.gui.components.Button;
@@ -49,7 +49,7 @@ public class ToolboxScreen extends AbstractItemContainerScreen<ToolboxMenu> {
             int btnX = this.leftPos + slotIndex * 18 + SLOT_START_X + 8 - BTN_W / 2;
 
             Button btn = Button.builder(Component.literal("▼"), b ->
-                            M2ToolboxNetwork.CHANNEL.sendToServer(new OpenTrayPacket(slotIndex, menu.fromCurios)))
+                            M2ToolboxNetworks.CHANNEL.sendToServer(new OpenTrayPacket(slotIndex, menu.fromCurios)))
                     .pos(btnX, btnY)
                     .size(BTN_W, BTN_H)
                     .build();

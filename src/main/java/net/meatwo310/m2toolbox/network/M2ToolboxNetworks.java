@@ -4,7 +4,7 @@ import net.meatwo310.m2toolbox.M2Toolbox;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
-public class M2ToolboxNetwork {
+public class M2ToolboxNetworks {
     private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             M2Toolbox.loc( "main"),

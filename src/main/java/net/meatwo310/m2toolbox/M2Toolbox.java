@@ -4,7 +4,7 @@ import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.meatwo310.m2toolbox.item.M2ToolboxTabs;
 import net.meatwo310.m2toolbox.menu.M2ToolboxMenus;
-import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
+import net.meatwo310.m2toolbox.network.M2ToolboxNetworks;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -23,7 +23,7 @@ public class M2Toolbox {
 
         M2ToolboxMenus.register(bus);
 
-        M2ToolboxNetwork.register();
+        M2ToolboxNetworks.register();
 
         ctx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
     }
