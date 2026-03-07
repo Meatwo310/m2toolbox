@@ -3,6 +3,7 @@
   "gui.m2toolbox.back": "戻る",
   "gui.m2toolbox.menu": "メニュー",
   "gui.m2toolbox.radial_hotbar_full": "ホットバーが満杯のため、アイテムを取り出せません",
+  "gui.m2toolbox.radial_main_hand_empty": "しまうアイテムがありません",
   "item.m2toolbox.overstacked": "スタックされた状態では使用できません",
   "item.m2toolbox.toolbox": "ツールボックス",
   "item.m2toolbox.tray": "トレイ",

@@ -1,6 +1,7 @@
 package net.meatwo310.m2toolbox.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
@@ -9,6 +10,7 @@ import net.meatwo310.m2toolbox.item.AbstractContainerItem;
 import net.meatwo310.m2toolbox.network.ExtractItemPacket;
 import net.meatwo310.m2toolbox.network.M2ToolboxNetwork;
 import net.meatwo310.m2toolbox.network.ReopenToolboxPacket;
+import net.meatwo310.m2toolbox.network.StoreItemPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -139,7 +141,7 @@ public class RadialMenuScreen extends Screen {
     private void renderContents(GuiGraphics g, int cx, int cy, int radius, int innerRadius, int hovered) {
         for (int i = 0; i < ITEM_COUNT; i++) {
             boolean active   = isSlotActive(i);
-            boolean selected = active && (i == hovered);
+            boolean isHovered = i == hovered;
 
             double baseStart = Math.toRadians(i * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
             double baseEnd   = Math.toRadians((i + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
@@ -150,14 +152,15 @@ public class RadialMenuScreen extends Screen {
             int iconCx = (int)(cx + Math.cos(midAngle) * contentRadius);
             int iconCy = (int)(cy + Math.sin(midAngle) * contentRadius);
 
-            renderSlotContent(g, i, iconCx, iconCy, selected, active);
+            renderSlotContent(g, i, iconCx, iconCy, isHovered, active);
         }
     }
 
     /** 1スロット分のアイコン・ラベルを描画する */
     private void renderSlotContent(GuiGraphics g, int index, int cx, int cy,
-                                   boolean selected, boolean active) {
-        float scale = selected ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
+                                   boolean hovered, boolean active) {
+        boolean selected = hovered && active;
+        float scale = hovered ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
 
         if (index == 0) {
             String symbol = (phase == Phase.TRAY_SELECT) ? "≡" : "«";
@@ -183,7 +186,26 @@ public class RadialMenuScreen extends Screen {
                     g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
                 }
             } else {
-                g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+                if (phase == Phase.ITEM_SELECT && hovered) {
+                    // トレイアイテム選択中の空スロット: メインハンドのアイテムをプレビュー表示
+                    assert Minecraft.getInstance().player != null;
+                    ItemStack mainHandItem = Minecraft.getInstance().player.getMainHandItem();
+                    if (!mainHandItem.isEmpty()) {
+                        // メインハンドのアイテムを半透明でプレビュー
+                        g.pose().pushPose();
+                        g.pose().translate(cx, cy, 0);
+                        g.pose().scale(scale, scale, 1.0f);
+                        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.4f);
+                        g.renderItem(mainHandItem, -8, -8);
+                        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+                        g.pose().popPose();
+                        g.drawCenteredString(this.font, mainHandItem.getHoverName(), cx, cy + 12, 0xFFAAAAAA);
+                    } else {
+                        g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+                    }
+                } else {
+                    g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+                }
             }
         }
     }
@@ -257,12 +279,23 @@ public class RadialMenuScreen extends Screen {
                     phase = Phase.ITEM_SELECT;
                 }
             } else {
-                playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.75F, 1.5F);
                 if (!toolStacks[slot].isEmpty()) {
+                    playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.75F, 1.5F);
                     M2ToolboxNetwork.CHANNEL.sendToServer(
                             new ExtractItemPacket(selectedTraySlot, slot)
                     );
                     this.onClose();
+                } else {
+                    // 空スロットへメインハンドのアイテムをしまう
+                    assert Minecraft.getInstance().player != null;
+                    ItemStack mainHandItem = Minecraft.getInstance().player.getMainHandItem();
+                    if (!mainHandItem.isEmpty()) {
+                        playSound(SoundEvents.BUNDLE_INSERT, 0.75F, 1.0F);
+                        M2ToolboxNetwork.CHANNEL.sendToServer(
+                                new StoreItemPacket(selectedTraySlot, slot)
+                        );
+                        this.onClose();
+                    }
                 }
             }
             return true;

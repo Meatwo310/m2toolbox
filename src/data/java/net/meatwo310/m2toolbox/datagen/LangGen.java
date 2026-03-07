@@ -33,6 +33,7 @@ public class LangGen {
 
             add(M2ToolboxKeys.ITEM_OVERSTACKED, "Cannot use while overstacked");
             add(M2ToolboxKeys.RADIAL_HOTBAR_FULL, "Hotbar is full, cannot extract item");
+            add(M2ToolboxKeys.RADIAL_MAIN_HAND_EMPTY, "No item to store");
 
             add(M2ToolboxKeys.GUI_BACK, "Back");
             add(M2ToolboxKeys.GUI_MENU, "Menu");
@@ -55,6 +56,7 @@ public class LangGen {
 
             add(M2ToolboxKeys.ITEM_OVERSTACKED, "スタックされた状態では使用できません");
             add(M2ToolboxKeys.RADIAL_HOTBAR_FULL, "ホットバーが満杯のため、アイテムを取り出せません");
+            add(M2ToolboxKeys.RADIAL_MAIN_HAND_EMPTY, "しまうアイテムがありません");
 
             add(M2ToolboxKeys.GUI_BACK, "戻る");
             add(M2ToolboxKeys.GUI_MENU, "メニュー");
