@@ -42,6 +42,50 @@ public class RadialMenuScreen extends Screen {
     /** セクター弧の分割数（値が大きいほど滑らか） */
     private static final int   ARC_SEGMENTS         = 10;
 
+    /** 円周全体の総ステップ数 = ITEM_COUNT × ARC_SEGMENTS */
+    private static final int   TOTAL_STEPS          = ITEM_COUNT * ARC_SEGMENTS; // 200
+
+    // ---- 三角関数キャッシュ ---------------------------------------------------
+
+    /**
+     * ドーナツ描画用 cos/sin キャッシュ。インデックス = item * ARC_SEGMENTS + i (0〜TOTAL_STEPS)。
+     * 対応角度 = toRadians(index * ANGLE_PER_ITEM / ARC_SEGMENTS - 90 - HALF_ANGLE)
+     */
+    private static final double[] DONUT_COS  = new double[TOTAL_STEPS + 1];
+    private static final double[] DONUT_SIN  = new double[TOTAL_STEPS + 1];
+
+    /**
+     * 内円描画用 cos/sin キャッシュ。インデックス = i (0〜TOTAL_STEPS)。
+     * 対応角度 = 2π * i / TOTAL_STEPS（均等分割）
+     */
+    private static final double[] CIRCLE_COS = new double[TOTAL_STEPS + 1];
+    private static final double[] CIRCLE_SIN = new double[TOTAL_STEPS + 1];
+
+    /**
+     * セクター中央方向の cos/sin キャッシュ（renderContents 用）。
+     * インデックス = item (0〜ITEM_COUNT-1)。
+     * 対応角度 = toRadians(item * ANGLE_PER_ITEM - 90)
+     */
+    private static final double[] SECTOR_MID_COS = new double[ITEM_COUNT];
+    private static final double[] SECTOR_MID_SIN = new double[ITEM_COUNT];
+
+    static {
+        for (int step = 0; step <= TOTAL_STEPS; step++) {
+            double donutAngle  = Math.toRadians(step * ANGLE_PER_ITEM / ARC_SEGMENTS - 90 - HALF_ANGLE);
+            DONUT_COS[step]  = Math.cos(donutAngle);
+            DONUT_SIN[step]  = Math.sin(donutAngle);
+
+            double circleAngle = 2.0 * Math.PI * step / TOTAL_STEPS;
+            CIRCLE_COS[step] = Math.cos(circleAngle);
+            CIRCLE_SIN[step] = Math.sin(circleAngle);
+        }
+        for (int item = 0; item < ITEM_COUNT; item++) {
+            double midAngle        = Math.toRadians(item * ANGLE_PER_ITEM - 90);
+            SECTOR_MID_COS[item] = Math.cos(midAngle);
+            SECTOR_MID_SIN[item] = Math.sin(midAngle);
+        }
+    }
+
     // ---- フェーズ管理 ---------------------------------------------------------
 
     public enum Phase { TRAY_SELECT, ITEM_SELECT }
@@ -161,21 +205,14 @@ public class RadialMenuScreen extends Screen {
             int g = FastColor.ARGB32.green(color);
             int b = FastColor.ARGB32.blue(color);
             int a = FastColor.ARGB32.alpha(color);
-            double startAngle = Math.toRadians(item * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-            double endAngle   = Math.toRadians((item + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
 
             for (int i = 0; i <= ARC_SEGMENTS; i++) {
-                double angle = startAngle + (endAngle - startAngle) * i / ARC_SEGMENTS;
-                double cos = Math.cos(angle);
-                double sin = Math.sin(angle);
+                int    step = item * ARC_SEGMENTS + i;
+                double cos  = DONUT_COS[step];
+                double sin  = DONUT_SIN[step];
 
-                double xOuter = cx + cos * radius;
-                double yOuter = cy + sin * radius;
-                buf.vertex(xOuter, yOuter, 0).color(r, g, b, a).endVertex();
-
-                double xInner = cx + cos * innerRadius;
-                double yInner = cy + sin * innerRadius;
-                buf.vertex(xInner, yInner, 0).color(r, g, b, a).endVertex();
+                buf.vertex(cx + cos * radius,      cy + sin * radius,      0).color(r, g, b, a).endVertex();
+                buf.vertex(cx + cos * innerRadius, cy + sin * innerRadius, 0).color(r, g, b, a).endVertex();
             }
         }
     }
@@ -189,29 +226,21 @@ public class RadialMenuScreen extends Screen {
 
         buf.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
 
-        int triangles = ARC_SEGMENTS * ITEM_COUNT;
-        for (int i = triangles; i >= 0; i--) {
-            double angle = 2 * Math.PI * i / triangles;
-            double x = cx + (Math.cos(angle) * innerRadius);
-            double y = cy + (Math.sin(angle) * innerRadius);
-            buf.vertex(x, y, 0).color(r, g, b, a).endVertex();
+        for (int i = TOTAL_STEPS; i >= 0; i--) {
+            buf.vertex(cx + CIRCLE_COS[i] * innerRadius, cy + CIRCLE_SIN[i] * innerRadius, 0)
+               .color(r, g, b, a).endVertex();
         }
     }
 
     /** 全セクターのアイコン・ラベルを描画する */
     private void renderContents(GuiGraphics g, int cx, int cy, int radius, int innerRadius, int hovered) {
+        float contentRadius = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
         for (int i = 0; i < ITEM_COUNT; i++) {
-            boolean active   = isSlotActive(i);
+            boolean active = isSlotActive(i);
             boolean isHovered = i == hovered;
 
-            double baseStart = Math.toRadians(i * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-            double baseEnd   = Math.toRadians((i + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-            double midAngle  = (baseStart + baseEnd) / 2.0;
-
-            float contentRadius = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
-
-            int iconCx = (int)(cx + Math.cos(midAngle) * contentRadius);
-            int iconCy = (int)(cy + Math.sin(midAngle) * contentRadius);
+            int iconCx = (int)(cx + SECTOR_MID_COS[i] * contentRadius);
+            int iconCy = (int)(cy + SECTOR_MID_SIN[i] * contentRadius);
 
             renderSlotContent(g, i, iconCx, iconCy, isHovered, active);
         }
