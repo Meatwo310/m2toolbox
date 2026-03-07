@@ -275,19 +275,15 @@ public class RadialMenuScreen extends Screen {
      * 空スロットを描画する。
      * ITEM_SELECT フェーズかつホバー中の場合、メインハンドのアイテムをプレビュー表示する。
      */
-    private void renderEmptySlot(GuiGraphics g, int slot, int cx, int cy,
-                                 boolean hovered, float scale) {
-        if (phase != Phase.ITEM_SELECT || !hovered) {
-            g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
-            return;
-        }
+    private void renderEmptySlot(GuiGraphics g, int slot, int cx, int cy, boolean hovered, float scale) {
+        boolean showPreview = phase == Phase.ITEM_SELECT && hovered;
 
-        // ITEM_SELECT フェーズ・ホバー中: メインハンドのアイテムをプレビュー
-        var player = Minecraft.getInstance().player;
+        var player = showPreview ? Minecraft.getInstance().player : null;
         ItemStack mainHandItem = (player != null) ? player.getMainHandItem() : ItemStack.EMPTY;
+        boolean hasItem = showPreview && !mainHandItem.isEmpty();
 
-        if (mainHandItem.isEmpty()) {
-            g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+        if (!hasItem) {
+            g.drawCenteredString(this.font, Component.literal("-"), cx, cy - 4, 0xFFAAAAAA);
             return;
         }
 
