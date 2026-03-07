@@ -1,12 +1,11 @@
 package net.meatwo310.m2toolbox.network;
 
 import net.meatwo310.m2toolbox.M2ToolboxKeys;
-import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
+import net.meatwo310.m2toolbox.util.ToolboxFinder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -59,22 +58,14 @@ public class StoreItemPacket {
             if (toolboxStack == null) return;
 
             // ツールボックスハンドラにNBT読み込み
-            ToolboxHandler toolboxHandler = new ToolboxHandler();
-            CompoundTag toolboxTag = toolboxStack.getTag();
-            if (toolboxTag != null && toolboxTag.contains("Items")) {
-                toolboxHandler.deserializeNBT(toolboxTag.getCompound("Items"));
-            }
+            ToolboxHandler toolboxHandler = new ToolboxHandler(toolboxStack);
 
             // トレイ取得・検証
             ItemStack trayStack = toolboxHandler.getStackInSlot(traySlot);
             if (trayStack.isEmpty() || !trayStack.is(M2ToolboxItems.TRAY.get())) return;
 
             // トレイハンドラにNBT読み込み
-            TrayHandler trayHandler = new TrayHandler();
-            CompoundTag trayTag = trayStack.getTag();
-            if (trayTag != null && trayTag.contains("Items")) {
-                trayHandler.deserializeNBT(trayTag.getCompound("Items"));
-            }
+            TrayHandler trayHandler = new TrayHandler(trayStack);
 
             // 対象スロットが空であることを確認
             ItemStack existingItem = trayHandler.getStackInSlot(trayItemSlot);
@@ -84,11 +75,9 @@ public class StoreItemPacket {
             trayHandler.setStackInSlot(trayItemSlot, mainHandItem.copy());
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
-            // トレイのNBTをtrayStackに書き戻す
-            trayStack.getOrCreateTag().put("Items", trayHandler.serializeNBT());
-
-            // ツールボックスのNBTをtoolboxStackに書き戻す
-            toolboxStack.getOrCreateTag().put("Items", toolboxHandler.serializeNBT());
+            // トレイ・ツールボックスの NBT を書き戻す
+            trayHandler.saveToStack(trayStack);
+            toolboxHandler.saveToStack(toolboxStack);
         });
         ctx.get().setPacketHandled(true);
     }

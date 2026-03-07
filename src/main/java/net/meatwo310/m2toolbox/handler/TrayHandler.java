@@ -1,10 +1,10 @@
 package net.meatwo310.m2toolbox.handler;
 
-import net.minecraftforge.items.ItemStackHandler;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;
 
-public class TrayHandler extends ItemStackHandler {
+public class TrayHandler extends AbstractItemHandler {
     public static final int TOOL_SLOTS = 9;
     public static final int SUB_SLOTS = 9;
     public static final int TOTAL_SLOTS = TOOL_SLOTS + SUB_SLOTS;
@@ -12,6 +12,10 @@ public class TrayHandler extends ItemStackHandler {
 
     public TrayHandler() {
         super(TOTAL_SLOTS);
+    }
+
+    public TrayHandler(ItemStack stack) {
+        super(TOTAL_SLOTS, stack);
     }
 
     public static boolean isToolSlot(int slot) {

@@ -4,7 +4,6 @@ import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.meatwo310.m2toolbox.menu.TrayMenu;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
@@ -42,12 +41,7 @@ public class OpenTrayPacket {
 
             if (slotIndex < 0 || slotIndex >= ToolboxHandler.SLOTS) return;
 
-            ToolboxHandler handler = new ToolboxHandler();
-            CompoundTag tag = toolboxStack.getTag();
-            if (tag != null && tag.contains("Items")) {
-                handler.deserializeNBT(tag.getCompound("Items"));
-            }
-
+            ToolboxHandler handler = new ToolboxHandler(toolboxStack);
             ItemStack trayStack = handler.getStackInSlot(slotIndex);
             if (trayStack.isEmpty() || !trayStack.is(M2ToolboxItems.TRAY.get())) return;
 

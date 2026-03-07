@@ -6,7 +6,6 @@ import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetCarriedItemPacket;
@@ -46,26 +45,18 @@ public class ExtractItemPacket {
             if (trayItemSlot < 0 || trayItemSlot >= TrayHandler.TOOL_SLOTS) return;
 
             // CuriosスロットからツールボックスItemStackを取得・検証
-            var toolboxStack = CuriosCompat.getToolboxStack(player).orElse(null);
-            if (toolboxStack == null) return;
+            ItemStack toolboxStack = CuriosCompat.getToolboxStack(player).orElse(ItemStack.EMPTY);
+            if (toolboxStack.isEmpty()) return;
 
             // ツールボックスハンドラにNBT読み込み
-            ToolboxHandler toolboxHandler = new ToolboxHandler();
-            CompoundTag toolboxTag = toolboxStack.getTag();
-            if (toolboxTag != null && toolboxTag.contains("Items")) {
-                toolboxHandler.deserializeNBT(toolboxTag.getCompound("Items"));
-            }
+            ToolboxHandler toolboxHandler = new ToolboxHandler(toolboxStack);
 
             // トレイ取得・検証
             ItemStack trayStack = toolboxHandler.getStackInSlot(traySlot);
             if (trayStack.isEmpty() || !trayStack.is(M2ToolboxItems.TRAY.get())) return;
 
             // トレイハンドラにNBT読み込み
-            TrayHandler trayHandler = new TrayHandler();
-            CompoundTag trayTag = trayStack.getTag();
-            if (trayTag != null && trayTag.contains("Items")) {
-                trayHandler.deserializeNBT(trayTag.getCompound("Items"));
-            }
+            TrayHandler trayHandler = new TrayHandler(trayStack);
 
             // 取り出すアイテムを取得
             ItemStack itemToMove = trayHandler.getStackInSlot(trayItemSlot);
@@ -101,36 +92,9 @@ public class ExtractItemPacket {
             playerInv.selected = destSlot;
             player.connection.send(new ClientboundSetCarriedItemPacket(destSlot));
 
-            // トレイのNBTをtrayStackに書き戻す
-            // trayStackはtoolboxHandlerの内部参照なので、ここで更新すれば
-            // toolboxHandler.serializeNBT()にも反映される
-            boolean trayEmpty = true;
-            for (int i = 0; i < TrayHandler.TOTAL_SLOTS; i++) {
-                if (!trayHandler.getStackInSlot(i).isEmpty()) {
-                    trayEmpty = false;
-                    break;
-                }
-            }
-            if (trayEmpty) {
-                trayStack.setTag(null);
-            } else {
-                trayStack.getOrCreateTag().put("Items", trayHandler.serializeNBT());
-            }
-
-            // ツールボックスのNBTをtoolboxStackに書き戻す
-            // toolboxStackはCuriosハンドラの内部参照なのでタグ変更がそのまま反映される
-            boolean toolboxEmpty = true;
-            for (int i = 0; i < ToolboxHandler.SLOTS; i++) {
-                if (!toolboxHandler.getStackInSlot(i).isEmpty()) {
-                    toolboxEmpty = false;
-                    break;
-                }
-            }
-            if (toolboxEmpty) {
-                toolboxStack.setTag(null);
-            } else {
-                toolboxStack.getOrCreateTag().put("Items", toolboxHandler.serializeNBT());
-            }
+            // トレイ・ツールボックスの NBT を書き戻す
+            trayHandler.saveToStack(trayStack);
+            toolboxHandler.saveToStack(toolboxStack);
         });
         ctx.get().setPacketHandled(true);
     }
