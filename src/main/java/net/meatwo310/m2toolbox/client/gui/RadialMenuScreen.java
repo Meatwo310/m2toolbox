@@ -29,16 +29,12 @@ public class RadialMenuScreen extends Screen {
     // ---- 定数 ----------------------------------------------------------------
 
     private static final int    ITEM_COUNT     = 10;
-    private static final double ANGLE_PER_ITEM = 360.0 / ITEM_COUNT; // 36°
+    private static final double ANGLE_PER_ITEM = 360.0 / ITEM_COUNT;   // 36°
     private static final double HALF_ANGLE     = ANGLE_PER_ITEM / 2.0; // 18°（12時合わせ用オフセット）
 
     // コンテンツ位置のパラメータ
     /** アイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
     private static final float CONTENT_RADIUS_RATIO = 0.60f;
-    /** 選択時のアイコンスケール */
-    private static final float ICON_SCALE_SELECTED  = 1.25f;
-    /** 通常時のアイコンスケール */
-    private static final float ICON_SCALE_NORMAL    = 1.00f;
 
     // ---- フェーズ管理 ---------------------------------------------------------
 
@@ -170,7 +166,7 @@ public class RadialMenuScreen extends Screen {
     private void renderSpecialSlot(GuiGraphics g, int cx, int cy,
                                    boolean hovered, boolean active) {
         boolean selected = hovered && active;
-        float scale = hovered ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
+        float scale = getIconScale(hovered);
 
         String symbol = (phase == Phase.TRAY_SELECT) ? "≡" : "«";
         int color = selected ? 0xFFFFFFFF : (active ? 0xFFDDDDDD : 0xFF444444);
@@ -188,7 +184,7 @@ public class RadialMenuScreen extends Screen {
     private void renderItemSlot(GuiGraphics g, int slot, int cx, int cy,
                                 boolean hovered, boolean active) {
         boolean selected = hovered && active;
-        float scale = hovered ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
+        float scale = getIconScale(hovered);
 
         ItemStack stack = (phase == Phase.TRAY_SELECT) ? trayStacks[slot] : toolStacks[slot];
 
@@ -204,6 +200,10 @@ public class RadialMenuScreen extends Screen {
         } else {
             renderEmptySlot(g, slot, cx, cy, hovered, scale);
         }
+    }
+
+    private float getIconScale(boolean hovered) {
+        return (hovered ? ClientConfig.MENU_SELECTED_ITEM_SCALE.get() : ClientConfig.MENU_ITEM_SCALE.get()).floatValue();
     }
 
     /**

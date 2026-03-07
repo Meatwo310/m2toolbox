@@ -14,5 +14,13 @@ public class ClientConfig {
             .comment("Inner radius of the radial menu in pixels")
             .defineInRange("menuInnerRadius", 40, 10, 100);
 
+    public static final ForgeConfigSpec.DoubleValue MENU_ITEM_SCALE = BUILDER
+            .comment("Scale of the unselected items in the radial menu")
+            .defineInRange("menuItemScale", 1.0, 0.125, 10.0);
+
+    public static final ForgeConfigSpec.DoubleValue MENU_SELECTED_ITEM_SCALE = BUILDER
+            .comment("Scale of the selected item in the radial menu")
+            .defineInRange("menuSelectedItemScale", 1.5, 0.125, 10.0);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 }
