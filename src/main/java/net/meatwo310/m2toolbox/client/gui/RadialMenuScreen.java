@@ -2,6 +2,7 @@ package net.meatwo310.m2toolbox.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
@@ -14,11 +15,13 @@ import net.meatwo310.m2toolbox.network.StoreItemPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,6 +38,53 @@ public class RadialMenuScreen extends Screen {
     // コンテンツ位置のパラメータ
     /** アイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
     private static final float CONTENT_RADIUS_RATIO = 0.60f;
+
+    /** セクター弧の分割数（値が大きいほど滑らか） */
+    private static final int   ARC_SEGMENTS         = 10;
+
+    /** 円周全体の総ステップ数 = ITEM_COUNT × ARC_SEGMENTS */
+    private static final int   TOTAL_STEPS          = ITEM_COUNT * ARC_SEGMENTS; // 200
+
+    // ---- 三角関数キャッシュ ---------------------------------------------------
+
+    /**
+     * ドーナツ描画用 cos/sin キャッシュ。インデックス = item * ARC_SEGMENTS + i (0〜TOTAL_STEPS)。
+     * 対応角度 = toRadians(index * ANGLE_PER_ITEM / ARC_SEGMENTS - 90 - HALF_ANGLE)
+     */
+    private static final double[] DONUT_COS  = new double[TOTAL_STEPS + 1];
+    private static final double[] DONUT_SIN  = new double[TOTAL_STEPS + 1];
+
+    /**
+     * 内円描画用 cos/sin キャッシュ。インデックス = i (0〜TOTAL_STEPS)。
+     * 対応角度 = 2π * i / TOTAL_STEPS（均等分割）
+     */
+    private static final double[] CIRCLE_COS = new double[TOTAL_STEPS + 1];
+    private static final double[] CIRCLE_SIN = new double[TOTAL_STEPS + 1];
+
+    /**
+     * セクター中央方向の cos/sin キャッシュ（renderContents 用）。
+     * インデックス = item (0〜ITEM_COUNT-1)。
+     * 対応角度 = toRadians(item * ANGLE_PER_ITEM - 90)
+     */
+    private static final double[] SECTOR_MID_COS = new double[ITEM_COUNT];
+    private static final double[] SECTOR_MID_SIN = new double[ITEM_COUNT];
+
+    static {
+        for (int step = 0; step <= TOTAL_STEPS; step++) {
+            double donutAngle  = Math.toRadians(step * ANGLE_PER_ITEM / ARC_SEGMENTS - 90 - HALF_ANGLE);
+            DONUT_COS[step]  = Math.cos(donutAngle);
+            DONUT_SIN[step]  = Math.sin(donutAngle);
+
+            double circleAngle = 2.0 * Math.PI * step / TOTAL_STEPS;
+            CIRCLE_COS[step] = Math.cos(circleAngle);
+            CIRCLE_SIN[step] = Math.sin(circleAngle);
+        }
+        for (int item = 0; item < ITEM_COUNT; item++) {
+            double midAngle        = Math.toRadians(item * ANGLE_PER_ITEM - 90);
+            SECTOR_MID_COS[item] = Math.cos(midAngle);
+            SECTOR_MID_SIN[item] = Math.sin(midAngle);
+        }
+    }
 
     // ---- フェーズ管理 ---------------------------------------------------------
 
@@ -124,8 +174,8 @@ public class RadialMenuScreen extends Screen {
         int cy          = this.height / 2;
         int hovered     = getHoveredIndex(mouseX, mouseY);
 
-        // バニラの背景
-        this.renderBackground(guiGraphics);
+        // ラジアル背景（ドーナツ型セクター）
+        renderRadialBackground(guiGraphics, cx, cy, radius, innerRadius, hovered);
 
         // アイコン・ラベル
         renderContents(guiGraphics, cx, cy, radius, innerRadius, hovered);
@@ -136,20 +186,61 @@ public class RadialMenuScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
 
+    /**
+     * ドーナツ型のラジアルメニュー背景を描画する。
+     * 各セクターを TRIANGLE_STRIP で塗りつぶし、ホバー中のセクターのみ色を変える。
+     */
+    private void renderRadialBackground(GuiGraphics guiGraphics, int cx, int cy,
+                                        int radius, int innerRadius, int hovered) {
+        MultiBufferSource.BufferSource src = guiGraphics.bufferSource();
+        drawInnerCircle(src.getBuffer(RadialRenderType.GUI_CIRCLE), cx, cy, innerRadius);
+        drawOuterDonut(src.getBuffer(RadialRenderType.GUI_DONUT), cx, cy, radius, innerRadius, hovered);
+        src.endBatch();
+    }
+
+    private static void drawOuterDonut(VertexConsumer buf, int cx, int cy, int radius, int innerRadius, int hovered) {
+        for (int item = 0; item < ITEM_COUNT; item++) {
+            int color = (item == hovered) ? 0x40000000 : 0x50000000;
+            int r = FastColor.ARGB32.red(color);
+            int g = FastColor.ARGB32.green(color);
+            int b = FastColor.ARGB32.blue(color);
+            int a = FastColor.ARGB32.alpha(color);
+
+            for (int i = 0; i <= ARC_SEGMENTS; i++) {
+                int    step = item * ARC_SEGMENTS + i;
+                double cos  = DONUT_COS[step];
+                double sin  = DONUT_SIN[step];
+
+                buf.vertex(cx + cos * radius,      cy + sin * radius,      0).color(r, g, b, a).endVertex();
+                buf.vertex(cx + cos * innerRadius, cy + sin * innerRadius, 0).color(r, g, b, a).endVertex();
+            }
+        }
+    }
+
+    private static void drawInnerCircle(VertexConsumer buf, int cx, int cy, int innerRadius) {
+        int argb = 0x20000000;
+        int r = FastColor.ARGB32.red(argb);
+        int g = FastColor.ARGB32.green(argb);
+        int b = FastColor.ARGB32.blue(argb);
+        int a = FastColor.ARGB32.alpha(argb);
+
+        buf.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
+
+        for (int i = TOTAL_STEPS; i >= 0; i--) {
+            buf.vertex(cx + CIRCLE_COS[i] * innerRadius, cy + CIRCLE_SIN[i] * innerRadius, 0)
+               .color(r, g, b, a).endVertex();
+        }
+    }
+
     /** 全セクターのアイコン・ラベルを描画する */
     private void renderContents(GuiGraphics g, int cx, int cy, int radius, int innerRadius, int hovered) {
+        float contentRadius = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
         for (int i = 0; i < ITEM_COUNT; i++) {
-            boolean active   = isSlotActive(i);
+            boolean active = isSlotActive(i);
             boolean isHovered = i == hovered;
 
-            double baseStart = Math.toRadians(i * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-            double baseEnd   = Math.toRadians((i + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-            double midAngle  = (baseStart + baseEnd) / 2.0;
-
-            float contentRadius = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
-
-            int iconCx = (int)(cx + Math.cos(midAngle) * contentRadius);
-            int iconCy = (int)(cy + Math.sin(midAngle) * contentRadius);
+            int iconCx = (int)(cx + SECTOR_MID_COS[i] * contentRadius);
+            int iconCy = (int)(cy + SECTOR_MID_SIN[i] * contentRadius);
 
             renderSlotContent(g, i, iconCx, iconCy, isHovered, active);
         }
@@ -213,19 +304,15 @@ public class RadialMenuScreen extends Screen {
      * 空スロットを描画する。
      * ITEM_SELECT フェーズかつホバー中の場合、メインハンドのアイテムをプレビュー表示する。
      */
-    private void renderEmptySlot(GuiGraphics g, int slot, int cx, int cy,
-                                 boolean hovered, float scale) {
-        if (phase != Phase.ITEM_SELECT || !hovered) {
-            g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
-            return;
-        }
+    private void renderEmptySlot(GuiGraphics g, int slot, int cx, int cy, boolean hovered, float scale) {
+        boolean showPreview = phase == Phase.ITEM_SELECT && hovered;
 
-        // ITEM_SELECT フェーズ・ホバー中: メインハンドのアイテムをプレビュー
-        var player = Minecraft.getInstance().player;
+        var player = showPreview ? Minecraft.getInstance().player : null;
         ItemStack mainHandItem = (player != null) ? player.getMainHandItem() : ItemStack.EMPTY;
+        boolean hasItem = showPreview && !mainHandItem.isEmpty();
 
-        if (mainHandItem.isEmpty()) {
-            g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+        if (!hasItem) {
+            g.drawCenteredString(this.font, Component.literal("-"), cx, cy - 4, 0xFFAAAAAA);
             return;
         }
 
