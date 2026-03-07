@@ -2,6 +2,10 @@ package net.meatwo310.m2toolbox.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
@@ -14,12 +18,14 @@ import net.meatwo310.m2toolbox.network.StoreItemPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
+import org.joml.Matrix4f;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -35,6 +41,9 @@ public class RadialMenuScreen extends Screen {
     // コンテンツ位置のパラメータ
     /** アイコン中心がセクター中央から外側へずれる比率 (0=内縁, 1=外縁) */
     private static final float CONTENT_RADIUS_RATIO = 0.60f;
+
+    /** セクター弧の分割数（値が大きいほど滑らか） */
+    private static final int   ARC_SEGMENTS         = 20;
 
     // ---- フェーズ管理 ---------------------------------------------------------
 
@@ -124,8 +133,8 @@ public class RadialMenuScreen extends Screen {
         int cy          = this.height / 2;
         int hovered     = getHoveredIndex(mouseX, mouseY);
 
-        // バニラの背景
-        this.renderBackground(guiGraphics);
+        // ラジアル背景（ドーナツ型セクター）
+        renderRadialBackground(guiGraphics, cx, cy, radius, innerRadius, hovered);
 
         // アイコン・ラベル
         renderContents(guiGraphics, cx, cy, radius, innerRadius, hovered);
@@ -134,6 +143,60 @@ public class RadialMenuScreen extends Screen {
         renderCenterLabel(guiGraphics, cx, cy);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+    }
+
+    /**
+     * ドーナツ型のラジアルメニュー背景を描画する。
+     * 各セクターを TRIANGLE_STRIP で塗りつぶし、ホバー中のセクターのみ色を変える。
+     */
+    private void renderRadialBackground(GuiGraphics guiGraphics, int cx, int cy,
+                                        int radius, int innerRadius, int hovered) {
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder buf = tesselator.getBuilder();
+        Matrix4f matrix = guiGraphics.pose().last().pose();
+
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.disableDepthTest();
+
+        for (int i = 0; i < ITEM_COUNT; i++) {
+            boolean active    = isSlotActive(i);
+            boolean isHovered = (i == hovered);
+
+            float r, g, b, a;
+            if (isHovered && active) {
+                // ホバー中かつ有効: 白みがかったハイライト
+                r = 1.0f; g = 1.0f; b = 1.0f; a = 0.22f;
+            } else if (isHovered) {
+                // ホバー中だが無効: ごく薄いハイライト
+                r = 1.0f; g = 1.0f; b = 1.0f; a = 0.08f;
+            } else if (active) {
+                // 通常の有効セクター
+                r = 0.0f; g = 0.0f; b = 0.0f; a = 0.65f;
+            } else {
+                // 空スロット
+                r = 0.0f; g = 0.0f; b = 0.0f; a = 0.38f;
+            }
+
+            double startAngle = Math.toRadians(i * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
+            double endAngle   = Math.toRadians((i + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
+
+            buf.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
+            for (int s = 0; s <= ARC_SEGMENTS; s++) {
+                double angle = startAngle + (endAngle - startAngle) * s / ARC_SEGMENTS;
+                float cos = (float) Math.cos(angle);
+                float sin = (float) Math.sin(angle);
+                buf.vertex(matrix, cx + cos * innerRadius, cy + sin * innerRadius, 0)
+                   .color(r, g, b, a).endVertex();
+                buf.vertex(matrix, cx + cos * radius, cy + sin * radius, 0)
+                   .color(r, g, b, a).endVertex();
+            }
+            tesselator.end();
+        }
+
+        RenderSystem.enableDepthTest();
+        RenderSystem.disableBlend();
     }
 
     /** 全セクターのアイコン・ラベルを描画する */
