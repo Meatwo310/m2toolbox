@@ -162,8 +162,8 @@ public class RadialMenuScreen extends Screen {
 
         buf.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
 
-        for (int s = ARC_SEGMENTS; s >= 0; s--) {
-            double angle = 2 * Math.PI * s / ARC_SEGMENTS;
+        for (int s = ARC_SEGMENTS * ITEM_COUNT; s >= 0; s--) {
+            double angle = 2 * Math.PI * s / ARC_SEGMENTS / ITEM_COUNT;
             double x = cx + (Math.cos(angle) * radius);
             double y = cy + (Math.sin(angle) * radius);
             buf.vertex(x, y, 0).color(r, g, b, a).endVertex();
