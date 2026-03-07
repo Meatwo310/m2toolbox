@@ -159,55 +159,81 @@ public class RadialMenuScreen extends Screen {
     /** 1スロット分のアイコン・ラベルを描画する */
     private void renderSlotContent(GuiGraphics g, int index, int cx, int cy,
                                    boolean hovered, boolean active) {
+        if (index == 0) {
+            renderSpecialSlot(g, cx, cy, hovered, active);
+        } else {
+            renderItemSlot(g, index - 1, cx, cy, hovered, active);
+        }
+    }
+
+    /** インデックス0の特殊スロット（設定 / 戻る）を描画する */
+    private void renderSpecialSlot(GuiGraphics g, int cx, int cy,
+                                   boolean hovered, boolean active) {
         boolean selected = hovered && active;
         float scale = hovered ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
 
-        if (index == 0) {
-            String symbol = (phase == Phase.TRAY_SELECT) ? "≡" : "«";
-            int color = selected ? 0xFFFFFFFF : (active ? 0xFFDDDDDD : 0xFF444444);
-            renderScaledCenteredText(g, symbol, cx, cy, scale, color);
+        String symbol = (phase == Phase.TRAY_SELECT) ? "≡" : "«";
+        int color = selected ? 0xFFFFFFFF : (active ? 0xFFDDDDDD : 0xFF444444);
+        renderScaledCenteredText(g, symbol, cx, cy, scale, color);
+
+        if (selected) {
+            Component label = (phase == Phase.TRAY_SELECT)
+                    ? Component.translatable("gui.m2toolbox.menu")
+                    : Component.translatable("gui.m2toolbox.back");
+            g.drawCenteredString(this.font, label, cx, cy + 12, 0xFFFFFFFF);
+        }
+    }
+
+    /** インデックス1〜9の通常スロットを描画する */
+    private void renderItemSlot(GuiGraphics g, int slot, int cx, int cy,
+                                boolean hovered, boolean active) {
+        boolean selected = hovered && active;
+        float scale = hovered ? ICON_SCALE_SELECTED : ICON_SCALE_NORMAL;
+
+        ItemStack stack = (phase == Phase.TRAY_SELECT) ? trayStacks[slot] : toolStacks[slot];
+
+        if (!stack.isEmpty()) {
+            renderScaledItem(g, stack, cx, cy, scale);
             if (selected) {
-                Component label = (phase == Phase.TRAY_SELECT)
-                        ? Component.translatable("gui.m2toolbox.menu")
-                        : Component.translatable("gui.m2toolbox.back");
-                g.drawCenteredString(this.font, label, cx, cy + 12, 0xFFFFFFFF);
+                Component name = switch (phase) {
+                    case TRAY_SELECT -> AbstractContainerItem.getCustomOrIndexedName(stack, slot);
+                    case ITEM_SELECT -> stack.getHoverName();
+                };
+                g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
             }
         } else {
-            int slot = index - 1;
-            ItemStack stack = (phase == Phase.TRAY_SELECT) ? trayStacks[slot] : toolStacks[slot];
-
-            if (!stack.isEmpty()) {
-                renderScaledItem(g, stack, cx, cy, scale);
-                if (selected) {
-                    Component name = switch (phase) {
-                        case TRAY_SELECT -> AbstractContainerItem.getCustomOrIndexedName(stack, slot);
-                        case ITEM_SELECT -> stack.getHoverName();
-                    };
-                    g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
-                }
-            } else {
-                if (phase == Phase.ITEM_SELECT && hovered) {
-                    // トレイアイテム選択中の空スロット: メインハンドのアイテムをプレビュー表示
-                    assert Minecraft.getInstance().player != null;
-                    ItemStack mainHandItem = Minecraft.getInstance().player.getMainHandItem();
-                    if (!mainHandItem.isEmpty()) {
-                        // メインハンドのアイテムを半透明でプレビュー
-                        g.pose().pushPose();
-                        g.pose().translate(cx, cy, 0);
-                        g.pose().scale(scale, scale, 1.0f);
-                        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.4f);
-                        g.renderItem(mainHandItem, -8, -8);
-                        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-                        g.pose().popPose();
-                        g.drawCenteredString(this.font, mainHandItem.getHoverName(), cx, cy + 12, 0xFFAAAAAA);
-                    } else {
-                        g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
-                    }
-                } else {
-                    g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
-                }
-            }
+            renderEmptySlot(g, slot, cx, cy, hovered, scale);
         }
+    }
+
+    /**
+     * 空スロットを描画する。
+     * ITEM_SELECT フェーズかつホバー中の場合、メインハンドのアイテムをプレビュー表示する。
+     */
+    private void renderEmptySlot(GuiGraphics g, int slot, int cx, int cy,
+                                 boolean hovered, float scale) {
+        if (phase != Phase.ITEM_SELECT || !hovered) {
+            g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+            return;
+        }
+
+        // ITEM_SELECT フェーズ・ホバー中: メインハンドのアイテムをプレビュー
+        var player = Minecraft.getInstance().player;
+        ItemStack mainHandItem = (player != null) ? player.getMainHandItem() : ItemStack.EMPTY;
+
+        if (mainHandItem.isEmpty()) {
+            g.drawCenteredString(this.font, "-", cx, cy - 4, 0xFF333333);
+            return;
+        }
+
+        g.pose().pushPose();
+        g.pose().translate(cx, cy, 0);
+        g.pose().scale(scale, scale, 1.0f);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.4f);
+        g.renderItem(mainHandItem, -8, -8);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        g.pose().popPose();
+        g.drawCenteredString(this.font, mainHandItem.getHoverName(), cx, cy + 12, 0xFFAAAAAA);
     }
 
     /** 中央のフェーズ名ラベル */
@@ -247,61 +273,66 @@ public class RadialMenuScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button != 0) return super.mouseClicked(mouseX, mouseY, button);
+
         int index = getHoveredIndex((int) mouseX, (int) mouseY);
 
-        if (button == 0) {
-            if (index == -1) {
-                this.onClose();
-                return true;
-            }
-
-            if (index == 0) {
-                playSound(SoundEvents.UI_BUTTON_CLICK.get());
-                if (phase == Phase.TRAY_SELECT) {
-                    // フェーズ1: ToolboxGUIを開く（Curiosスロット経由）
-                    M2ToolboxNetworks.CHANNEL.sendToServer(new ReopenToolboxPacket(true));
-                    this.onClose();
-                } else {
-                    // フェーズ2: フェーズ1へ戻る
-                    phase = Phase.TRAY_SELECT;
-                    selectedTraySlot = -1;
-                }
-                return true;
-            }
-
-            int slot = index - 1;
-
-            if (phase == Phase.TRAY_SELECT) {
-                playSound(SoundEvents.UI_BUTTON_CLICK.get());
-                if (!trayStacks[slot].isEmpty()) {
-                    selectedTraySlot = slot;
-                    loadToolStacks(trayStacks[slot]);
-                    phase = Phase.ITEM_SELECT;
-                }
-            } else {
-                if (!toolStacks[slot].isEmpty()) {
-                    playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.75F, 1.5F);
-                    M2ToolboxNetworks.CHANNEL.sendToServer(
-                            new ExtractItemPacket(selectedTraySlot, slot)
-                    );
-                    this.onClose();
-                } else {
-                    // 空スロットへメインハンドのアイテムをしまう
-                    assert Minecraft.getInstance().player != null;
-                    ItemStack mainHandItem = Minecraft.getInstance().player.getMainHandItem();
-                    if (!mainHandItem.isEmpty()) {
-                        playSound(SoundEvents.BUNDLE_INSERT, 0.75F, 1.0F);
-                        M2ToolboxNetworks.CHANNEL.sendToServer(
-                                new StoreItemPacket(selectedTraySlot, slot)
-                        );
-                        this.onClose();
-                    }
-                }
-            }
+        if (index == -1) {
+            this.onClose();
             return true;
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        if (index == 0) {
+            handleSpecialSlotClick();
+            return true;
+        }
+
+        handleItemSlotClick(index - 1);
+        return true;
+    }
+
+    /** インデックス0クリック: 設定を開く / フェーズ1へ戻る */
+    private void handleSpecialSlotClick() {
+        playSound(SoundEvents.UI_BUTTON_CLICK.get());
+        if (phase == Phase.TRAY_SELECT) {
+            // フェーズ1: ToolboxGUIを開く（Curiosスロット経由）
+            M2ToolboxNetworks.CHANNEL.sendToServer(new ReopenToolboxPacket(true));
+            this.onClose();
+        } else {
+            // フェーズ2: フェーズ1へ戻る
+            phase = Phase.TRAY_SELECT;
+            selectedTraySlot = -1;
+        }
+    }
+
+    /** インデックス1〜9クリック: トレイ選択 or アイテム取り出し/しまう */
+    private void handleItemSlotClick(int slot) {
+        if (phase == Phase.TRAY_SELECT) {
+            if (trayStacks[slot].isEmpty()) return;
+            playSound(SoundEvents.UI_BUTTON_CLICK.get());
+            selectedTraySlot = slot;
+            loadToolStacks(trayStacks[slot]);
+            phase = Phase.ITEM_SELECT;
+            return;
+        }
+
+        // ITEM_SELECT フェーズ
+        if (!toolStacks[slot].isEmpty()) {
+            // アイテムを取り出す
+            playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.75F, 1.5F);
+            M2ToolboxNetworks.CHANNEL.sendToServer(new ExtractItemPacket(selectedTraySlot, slot));
+            this.onClose();
+            return;
+        }
+
+        // 空スロットへメインハンドのアイテムをしまう
+        var player = Minecraft.getInstance().player;
+        ItemStack mainHandItem = (player != null) ? player.getMainHandItem() : ItemStack.EMPTY;
+        if (mainHandItem.isEmpty()) return;
+
+        playSound(SoundEvents.BUNDLE_INSERT, 0.75F, 1.0F);
+        M2ToolboxNetworks.CHANNEL.sendToServer(new StoreItemPacket(selectedTraySlot, slot));
+        this.onClose();
     }
 
     private void playSound(SoundEvent sound) {
