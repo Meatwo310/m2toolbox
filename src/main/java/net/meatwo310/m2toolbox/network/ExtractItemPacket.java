@@ -36,15 +36,7 @@ public class ExtractItemPacket extends AbstractTraySlotPacket {
         // 現在選択中のホットバースロットを起点に右方向へ走査して空きを探す
         // スロット順: selected, selected+1, ..., 8, 0, ..., selected-1
         Inventory playerInv = player.getInventory();
-        int start = playerInv.selected; // 0-8
-        int destSlot = -1;
-        for (int offset = 0; offset < 9; offset++) {
-            int slot = (start + offset) % 9;
-            if (playerInv.getItem(slot).isEmpty()) {
-                destSlot = slot;
-                break;
-            }
-        }
+        int destSlot = findEmptyHotbarSlot(playerInv);
 
         // すべて埋まっていた場合はキャンセル
         if (destSlot == -1) {
@@ -64,5 +56,18 @@ public class ExtractItemPacket extends AbstractTraySlotPacket {
         player.connection.send(new ClientboundSetCarriedItemPacket(destSlot));
 
         return true;
+    }
+
+    private int findEmptyHotbarSlot(Inventory playerInv) {
+        int start = playerInv.selected; // 0-8
+        int destSlot = -1;
+        for (int offset = 0; offset < 9; offset++) {
+            int slot = (start + offset) % 9;
+            if (playerInv.getItem(slot).isEmpty()) {
+                destSlot = slot;
+                break;
+            }
+        }
+        return destSlot;
     }
 }
