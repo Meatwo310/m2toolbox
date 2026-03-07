@@ -124,6 +124,9 @@ public class RadialMenuScreen extends Screen {
         int cy          = this.height / 2;
         int hovered     = getHoveredIndex(mouseX, mouseY);
 
+        // バニラの背景
+        this.renderBackground(guiGraphics);
+
         // アイコン・ラベル
         renderContents(guiGraphics, cx, cy, radius, innerRadius, hovered);
 
