@@ -40,7 +40,7 @@ public class RadialMenuScreen extends Screen {
     private static final float CONTENT_RADIUS_RATIO = 0.60f;
 
     /** セクター弧の分割数（値が大きいほど滑らか） */
-    private static final int   ARC_SEGMENTS         = 20;
+    private static final int   ARC_SEGMENTS         = 10;
 
     // ---- フェーズ管理 ---------------------------------------------------------
 
