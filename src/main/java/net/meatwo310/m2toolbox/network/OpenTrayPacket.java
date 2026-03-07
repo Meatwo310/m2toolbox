@@ -1,9 +1,9 @@
 package net.meatwo310.m2toolbox.network;
 
-import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.meatwo310.m2toolbox.menu.TrayMenu;
+import net.meatwo310.m2toolbox.util.ToolboxFinder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
@@ -36,7 +36,7 @@ public class OpenTrayPacket {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
-            ItemStack toolboxStack = findToolbox(player);
+            ItemStack toolboxStack = ToolboxFinder.find(player, fromCurios);
             if (toolboxStack.isEmpty()) return;
 
             if (slotIndex < 0 || slotIndex >= ToolboxHandler.SLOTS) return;
@@ -60,17 +60,4 @@ public class OpenTrayPacket {
         ctx.get().setPacketHandled(true);
     }
 
-    private ItemStack findToolbox(ServerPlayer player) {
-        if (fromCurios) {
-            return CuriosCompat.getToolboxStack(player).orElse(ItemStack.EMPTY);
-        }
-
-        ItemStack main = player.getMainHandItem();
-        if (main.is(M2ToolboxItems.TOOLBOX.get())) return main;
-
-        ItemStack off = player.getOffhandItem();
-        if (off.is(M2ToolboxItems.TOOLBOX.get())) return off;
-
-        return ItemStack.EMPTY;
-    }
 }

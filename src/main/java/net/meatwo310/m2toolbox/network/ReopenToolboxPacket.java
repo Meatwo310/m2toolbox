@@ -1,11 +1,9 @@
 package net.meatwo310.m2toolbox.network;
 
-import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
-import net.meatwo310.m2toolbox.item.M2ToolboxItems;
 import net.meatwo310.m2toolbox.menu.ToolboxMenu;
+import net.meatwo310.m2toolbox.util.ToolboxFinder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
@@ -33,19 +31,7 @@ public class ReopenToolboxPacket {
             ServerPlayer player = ctx.get().getSender();
             if (player == null) return;
 
-            ItemStack toolboxStack = ItemStack.EMPTY;
-
-            if (fromCurios) {
-                toolboxStack = CuriosCompat.getToolboxStack(player).orElse(ItemStack.EMPTY);
-            } else {
-                for (InteractionHand hand : InteractionHand.values()) {
-                    ItemStack held = player.getItemInHand(hand);
-                    if (held.is(M2ToolboxItems.TOOLBOX.get())) {
-                        toolboxStack = held;
-                        break;
-                    }
-                }
-            }
+            ItemStack toolboxStack = ToolboxFinder.find(player, fromCurios);
 
             if (toolboxStack.isEmpty()) return;
 

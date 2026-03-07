@@ -54,8 +54,8 @@ public class StoreItemPacket {
             }
 
             // CuriosスロットからツールボックスItemStackを取得・検証
-            var toolboxStack = CuriosCompat.getToolboxStack(player).orElse(null);
-            if (toolboxStack == null) return;
+            ItemStack toolboxStack = ToolboxFinder.findFromCurios(player);
+            if (toolboxStack.isEmpty()) return;
 
             // ツールボックスハンドラにNBT読み込み
             ToolboxHandler toolboxHandler = new ToolboxHandler(toolboxStack);

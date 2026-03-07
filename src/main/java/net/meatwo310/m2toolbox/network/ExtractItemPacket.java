@@ -1,10 +1,10 @@
 package net.meatwo310.m2toolbox.network;
 
 import net.meatwo310.m2toolbox.M2ToolboxKeys;
-import net.meatwo310.m2toolbox.compat.curios.CuriosCompat;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;
 import net.meatwo310.m2toolbox.item.M2ToolboxItems;
+import net.meatwo310.m2toolbox.util.ToolboxFinder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -45,7 +45,7 @@ public class ExtractItemPacket {
             if (trayItemSlot < 0 || trayItemSlot >= TrayHandler.TOOL_SLOTS) return;
 
             // CuriosスロットからツールボックスItemStackを取得・検証
-            ItemStack toolboxStack = CuriosCompat.getToolboxStack(player).orElse(ItemStack.EMPTY);
+            ItemStack toolboxStack = ToolboxFinder.findFromCurios(player);
             if (toolboxStack.isEmpty()) return;
 
             // ツールボックスハンドラにNBT読み込み
