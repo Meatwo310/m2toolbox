@@ -22,7 +22,7 @@ public class RadialRenderType extends RenderType {
     public static final RenderType GUI_DONUT = create(
             "gui_donut",
             DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
+            VertexFormat.Mode.TRIANGLE_STRIP,
             256,
             false,
             false,

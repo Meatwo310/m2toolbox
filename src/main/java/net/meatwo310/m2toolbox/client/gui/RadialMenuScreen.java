@@ -149,9 +149,39 @@ public class RadialMenuScreen extends Screen {
     private void renderRadialBackground(GuiGraphics guiGraphics, int cx, int cy,
                                         int radius, int innerRadius, int hovered) {
         MultiBufferSource.BufferSource src = guiGraphics.bufferSource();
-        VertexConsumer buf = src.getBuffer(RadialRenderType.GUI_CIRCLE);
+        drawInnerCircle(src.getBuffer(RadialRenderType.GUI_CIRCLE), cx, cy, innerRadius);
+        drawOuterDonut(src.getBuffer(RadialRenderType.GUI_DONUT), cx, cy, radius, innerRadius, hovered);
+        src.endBatch();
+    }
 
-        int argb = 0x80000000;
+    private static void drawOuterDonut(VertexConsumer buf, int cx, int cy, int radius, int innerRadius, int hovered) {
+        for (int item = 0; item < ITEM_COUNT; item++) {
+            int color = (item == hovered) ? 0x40000000 : 0x50000000;
+            int r = FastColor.ARGB32.red(color);
+            int g = FastColor.ARGB32.green(color);
+            int b = FastColor.ARGB32.blue(color);
+            int a = FastColor.ARGB32.alpha(color);
+            double startAngle = Math.toRadians(item * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
+            double endAngle   = Math.toRadians((item + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
+
+            for (int i = 0; i <= ARC_SEGMENTS; i++) {
+                double angle = startAngle + (endAngle - startAngle) * i / ARC_SEGMENTS;
+                double cos = Math.cos(angle);
+                double sin = Math.sin(angle);
+
+                double xOuter = cx + cos * radius;
+                double yOuter = cy + sin * radius;
+                buf.vertex(xOuter, yOuter, 0).color(r, g, b, a).endVertex();
+
+                double xInner = cx + cos * innerRadius;
+                double yInner = cy + sin * innerRadius;
+                buf.vertex(xInner, yInner, 0).color(r, g, b, a).endVertex();
+            }
+        }
+    }
+
+    private static void drawInnerCircle(VertexConsumer buf, int cx, int cy, int innerRadius) {
+        int argb = 0x20000000;
         int r = FastColor.ARGB32.red(argb);
         int g = FastColor.ARGB32.green(argb);
         int b = FastColor.ARGB32.blue(argb);
@@ -160,14 +190,12 @@ public class RadialMenuScreen extends Screen {
         buf.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
 
         int triangles = ARC_SEGMENTS * ITEM_COUNT;
-        for (int s = triangles; s >= 0; s--) {
-            double angle = 2 * Math.PI * s / triangles;
-            double x = cx + (Math.cos(angle) * radius);
-            double y = cy + (Math.sin(angle) * radius);
+        for (int i = triangles; i >= 0; i--) {
+            double angle = 2 * Math.PI * i / triangles;
+            double x = cx + (Math.cos(angle) * innerRadius);
+            double y = cy + (Math.sin(angle) * innerRadius);
             buf.vertex(x, y, 0).color(r, g, b, a).endVertex();
         }
-
-        src.endBatch();
     }
 
     /** 全セクターのアイコン・ラベルを描画する */
