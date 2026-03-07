@@ -2,9 +2,8 @@ package net.meatwo310.m2toolbox.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
@@ -18,14 +17,15 @@ import net.meatwo310.m2toolbox.network.StoreItemPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.item.ItemStack;
-import org.joml.Matrix4f;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -151,52 +151,45 @@ public class RadialMenuScreen extends Screen {
      */
     private void renderRadialBackground(GuiGraphics guiGraphics, int cx, int cy,
                                         int radius, int innerRadius, int hovered) {
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buf = tesselator.getBuilder();
-        Matrix4f matrix = guiGraphics.pose().last().pose();
+        MultiBufferSource.BufferSource src = guiGraphics.bufferSource();
+        VertexConsumer buf = src.getBuffer(CustomRenderType.GUI_CIRCLE);
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        RenderSystem.disableDepthTest();
+        int argb = 0x80000000;
+        int r = FastColor.ARGB32.red(argb);
+        int g = FastColor.ARGB32.green(argb);
+        int b = FastColor.ARGB32.blue(argb);
+        int a = FastColor.ARGB32.alpha(argb);
 
-        for (int i = 0; i < ITEM_COUNT; i++) {
-            boolean active    = isSlotActive(i);
-            boolean isHovered = (i == hovered);
+        buf.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
 
-            float r, g, b, a;
-            if (isHovered && active) {
-                // ホバー中かつ有効: 白みがかったハイライト
-                r = 1.0f; g = 1.0f; b = 1.0f; a = 0.22f;
-            } else if (isHovered) {
-                // ホバー中だが無効: ごく薄いハイライト
-                r = 1.0f; g = 1.0f; b = 1.0f; a = 0.08f;
-            } else if (active) {
-                // 通常の有効セクター
-                r = 0.0f; g = 0.0f; b = 0.0f; a = 0.65f;
-            } else {
-                // 空スロット
-                r = 0.0f; g = 0.0f; b = 0.0f; a = 0.38f;
-            }
-
-            double startAngle = Math.toRadians(i * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-            double endAngle   = Math.toRadians((i + 1) * ANGLE_PER_ITEM - 90 - HALF_ANGLE);
-
-            buf.begin(VertexFormat.Mode.TRIANGLE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-            for (int s = 0; s <= ARC_SEGMENTS; s++) {
-                double angle = startAngle + (endAngle - startAngle) * s / ARC_SEGMENTS;
-                float cos = (float) Math.cos(angle);
-                float sin = (float) Math.sin(angle);
-                buf.vertex(matrix, cx + cos * radius, cy + sin * radius, 0)
-                   .color(r, g, b, a).endVertex();
-                buf.vertex(matrix, cx + cos * innerRadius, cy + sin * innerRadius, 0)
-                   .color(r, g, b, a).endVertex();
-            }
-            tesselator.end();
+        for (int s = ARC_SEGMENTS; s >= 0; s--) {
+            double angle = 2 * Math.PI * s / ARC_SEGMENTS;
+            double x = cx + (Math.cos(angle) * radius);
+            double y = cy + (Math.sin(angle) * radius);
+            buf.vertex(x, y, 0).color(r, g, b, a).endVertex();
         }
 
-        RenderSystem.enableDepthTest();
-        RenderSystem.disableBlend();
+        src.endBatch();
+    }
+
+    public static class CustomRenderType extends RenderType {
+        private static final RenderType GUI_CIRCLE = create(
+                "gui_circle",
+                DefaultVertexFormat.POSITION_COLOR,
+                VertexFormat.Mode.TRIANGLE_FAN,
+                256,
+                false,
+                false,
+                RenderType.CompositeState.builder()
+                        .setShaderState(RENDERTYPE_GUI_SHADER)
+                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                        .setDepthTestState(LEQUAL_DEPTH_TEST)
+                        .createCompositeState(false)
+        );
+
+        public CustomRenderType(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, Runnable pSetupState, Runnable pClearState) {
+            super(pName, pFormat, pMode, pBufferSize, pAffectsCrumbling, pSortOnUpload, pSetupState, pClearState);
+        }
     }
 
     /** 全セクターのアイコン・ラベルを描画する */
