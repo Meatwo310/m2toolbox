@@ -2,9 +2,7 @@ package net.meatwo310.m2toolbox.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
@@ -18,7 +16,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -152,7 +149,7 @@ public class RadialMenuScreen extends Screen {
     private void renderRadialBackground(GuiGraphics guiGraphics, int cx, int cy,
                                         int radius, int innerRadius, int hovered) {
         MultiBufferSource.BufferSource src = guiGraphics.bufferSource();
-        VertexConsumer buf = src.getBuffer(CustomRenderType.GUI_CIRCLE);
+        VertexConsumer buf = src.getBuffer(RadialRenderType.GUI_CIRCLE);
 
         int argb = 0x80000000;
         int r = FastColor.ARGB32.red(argb);
@@ -162,34 +159,15 @@ public class RadialMenuScreen extends Screen {
 
         buf.vertex(cx, cy, 0).color(r, g, b, a).endVertex();
 
-        for (int s = ARC_SEGMENTS * ITEM_COUNT; s >= 0; s--) {
-            double angle = 2 * Math.PI * s / ARC_SEGMENTS / ITEM_COUNT;
+        int triangles = ARC_SEGMENTS * ITEM_COUNT;
+        for (int s = triangles; s >= 0; s--) {
+            double angle = 2 * Math.PI * s / triangles;
             double x = cx + (Math.cos(angle) * radius);
             double y = cy + (Math.sin(angle) * radius);
             buf.vertex(x, y, 0).color(r, g, b, a).endVertex();
         }
 
         src.endBatch();
-    }
-
-    public static class CustomRenderType extends RenderType {
-        private static final RenderType GUI_CIRCLE = create(
-                "gui_circle",
-                DefaultVertexFormat.POSITION_COLOR,
-                VertexFormat.Mode.TRIANGLE_FAN,
-                256,
-                false,
-                false,
-                RenderType.CompositeState.builder()
-                        .setShaderState(RENDERTYPE_GUI_SHADER)
-                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setDepthTestState(LEQUAL_DEPTH_TEST)
-                        .createCompositeState(false)
-        );
-
-        public CustomRenderType(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, Runnable pSetupState, Runnable pClearState) {
-            super(pName, pFormat, pMode, pBufferSize, pAffectsCrumbling, pSortOnUpload, pSetupState, pClearState);
-        }
     }
 
     /** 全セクターのアイコン・ラベルを描画する */
