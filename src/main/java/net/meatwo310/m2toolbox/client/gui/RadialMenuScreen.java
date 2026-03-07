@@ -187,9 +187,9 @@ public class RadialMenuScreen extends Screen {
                 double angle = startAngle + (endAngle - startAngle) * s / ARC_SEGMENTS;
                 float cos = (float) Math.cos(angle);
                 float sin = (float) Math.sin(angle);
-                buf.vertex(matrix, cx + cos * innerRadius, cy + sin * innerRadius, 0)
-                   .color(r, g, b, a).endVertex();
                 buf.vertex(matrix, cx + cos * radius, cy + sin * radius, 0)
+                   .color(r, g, b, a).endVertex();
+                buf.vertex(matrix, cx + cos * innerRadius, cy + sin * innerRadius, 0)
                    .color(r, g, b, a).endVertex();
             }
             tesselator.end();
