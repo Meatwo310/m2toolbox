@@ -22,5 +22,10 @@ public class ClientConfig {
             .comment("Scale of the selected item in the radial menu")
             .defineInRange("menuSelectedItemScale", 1.5, 0.125, 10.0);
 
+    public static final ForgeConfigSpec.BooleanValue MENU_TOOLTIP = BUILDER
+            .comment("Whether to show tooltips in the radial menu. " +
+                    "Can be toggled in-game with the 'Toggle Menu Tooltips' keybind.")
+            .define("menuTooltip", true);
+
     public static final ForgeConfigSpec SPEC = BUILDER.build();
 }

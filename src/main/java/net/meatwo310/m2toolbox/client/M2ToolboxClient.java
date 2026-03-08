@@ -23,9 +23,18 @@ public class M2ToolboxClient {
             M2ToolboxKeys.KEY_CATEGORY
     ));
 
+    public static final Lazy<KeyMapping> TOGGLE_MENU_TOOLTIPS = Lazy.of(() -> new KeyMapping(
+            M2ToolboxKeys.KEY_TOGGLE_TOOLTIPS,
+            KeyConflictContext.GUI,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            M2ToolboxKeys.KEY_CATEGORY
+    ));
+
     @SubscribeEvent
     public static void onKeyRegister(RegisterKeyMappingsEvent event) {
         event.register(OPEN_RADIAL_MENU.get());
+        event.register(TOGGLE_MENU_TOOLTIPS.get());
     }
 
     @SubscribeEvent

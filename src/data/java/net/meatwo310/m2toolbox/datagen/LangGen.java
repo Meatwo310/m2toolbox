@@ -30,6 +30,7 @@ public class LangGen {
 
             add(M2ToolboxKeys.KEY_CATEGORY, "m2toolbox");
             add(M2ToolboxKeys.KEY_OPEN_RADIAL, "Open Radial Menu");
+            add(M2ToolboxKeys.KEY_TOGGLE_TOOLTIPS, "Toggle Menu Tooltips");
 
             add(M2ToolboxKeys.ITEM_OVERSTACKED, "Cannot use while overstacked");
             add(M2ToolboxKeys.RADIAL_HOTBAR_FULL, "Hotbar is full, cannot extract item");
@@ -53,6 +54,7 @@ public class LangGen {
             addItem(M2ToolboxItems.TRAY, "トレイ");
 
             add(M2ToolboxKeys.KEY_OPEN_RADIAL, "ラジアルメニューを開く");
+            add(M2ToolboxKeys.KEY_TOGGLE_TOOLTIPS, "ツールチップの切り替え");
 
             add(M2ToolboxKeys.ITEM_OVERSTACKED, "スタックされた状態では使用できません");
             add(M2ToolboxKeys.RADIAL_HOTBAR_FULL, "ホットバーが満杯のため、アイテムを取り出せません");

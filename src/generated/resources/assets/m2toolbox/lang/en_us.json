@@ -9,5 +9,6 @@
   "item.m2toolbox.tray": "Tray",
   "itemGroup.m2toolbox": "m2toolbox",
   "key.categories.m2toolbox": "m2toolbox",
-  "key.m2toolbox.open_radial": "Open Radial Menu"
+  "key.m2toolbox.open_radial": "Open Radial Menu",
+  "key.m2toolbox.toggle_tooltips": "Toggle Menu Tooltips"
 }

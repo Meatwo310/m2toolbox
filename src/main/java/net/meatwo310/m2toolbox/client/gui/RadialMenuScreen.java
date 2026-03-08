@@ -177,6 +177,8 @@ public class RadialMenuScreen extends Screen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+
         int radius      = ClientConfig.MENU_RADIUS.get();
         int innerRadius = ClientConfig.MENU_INNER_RADIUS.get();
         int cx          = this.width  / 2;
@@ -192,7 +194,8 @@ public class RadialMenuScreen extends Screen {
         // 中央ラベル
         renderCenterLabel(guiGraphics, cx, cy);
 
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        // ツールチップ
+        renderTooltip(guiGraphics, mouseX, mouseY, hovered);
     }
 
     /**
@@ -348,6 +351,28 @@ public class RadialMenuScreen extends Screen {
         g.drawCenteredString(this.font, text, cx, cy + this.font.lineHeight, 0xFFFFFFFF);
     }
 
+    private void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int hovered) {
+        if (!shouldRenderItemTooltip()) {
+            return;
+        }
+
+        int slot = hovered - 1;
+        if (!isSlotActive(slot)) {
+            return;
+        }
+
+        var stack = (switch (phase) {
+            case TRAY_SELECT -> trayStacks;
+            case ITEM_SELECT -> toolStacks;
+        })[slot];
+
+        guiGraphics.renderTooltip(this.font, stack, mouseX, mouseY);
+    }
+
+    private boolean shouldRenderItemTooltip() {
+        return ClientConfig.MENU_TOOLTIP.get() || hasShiftDown();
+    }
+
     // ---- スケール描画ユーティリティ ------------------------------------------
 
     private void renderScaledItem(GuiGraphics g, ItemStack stack, int cx, int cy, float scale) {
@@ -446,11 +471,16 @@ public class RadialMenuScreen extends Screen {
 
     @Override
     public boolean keyPressed(int key, int scancode, int mods) {
-        if (M2ToolboxClient.OPEN_RADIAL_MENU.get().isActiveAndMatches(
-                InputConstants.getKey(key, scancode))) {
+        var pressed = InputConstants.getKey(key, scancode);
+        if (M2ToolboxClient.OPEN_RADIAL_MENU.get().isActiveAndMatches(pressed)) {
             this.onClose();
-            return true;
+        } else if (M2ToolboxClient.TOGGLE_MENU_TOOLTIPS.get().isActiveAndMatches(pressed)) {
+            var cfg = ClientConfig.MENU_TOOLTIP;
+            cfg.set(!cfg.get());
+        } else {
+            return super.keyPressed(key, scancode, mods);
         }
-        return super.keyPressed(key, scancode, mods);
+
+        return true;
     }
 }
