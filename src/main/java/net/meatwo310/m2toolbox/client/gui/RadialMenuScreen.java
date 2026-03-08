@@ -1,7 +1,7 @@
 package net.meatwo310.m2toolbox.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
 import net.meatwo310.m2toolbox.config.ClientConfig;
@@ -301,7 +301,7 @@ public class RadialMenuScreen extends Screen {
                     case TRAY_SELECT -> AbstractContainerItem.getCustomOrIndexedName(stack, slot);
                     case ITEM_SELECT -> stack.getHoverName();
                 };
-                g.drawCenteredString(this.font, name, cx, cy + 12, 0xFFFFFFFF);
+                g.drawCenteredString(this.font, name, cx, cy + 13, 0xFFFFFFFF);
             }
         } else {
             renderEmptySlot(g, slot, cx, cy, hovered, scale);
@@ -328,14 +328,8 @@ public class RadialMenuScreen extends Screen {
             return;
         }
 
-        g.pose().pushPose();
-        g.pose().translate(cx, cy, 0);
-        g.pose().scale(scale, scale, 1.0f);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.4f);
-        g.renderItem(mainHandItem, -8, -8);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        g.pose().popPose();
-        g.drawCenteredString(this.font, mainHandItem.getHoverName(), cx, cy + 12, 0xFFAAAAAA);
+        renderScaledItem(g, mainHandItem, cx, cy, scale);
+        g.drawCenteredString(this.font, mainHandItem.getHoverName(), cx, cy + 13, 0xFFAAAAAA);
     }
 
     /** 中央のフェーズ名ラベル */
@@ -372,11 +366,13 @@ public class RadialMenuScreen extends Screen {
     // ---- スケール描画ユーティリティ ------------------------------------------
 
     private void renderScaledItem(GuiGraphics g, ItemStack stack, int cx, int cy, float scale) {
-        g.pose().pushPose();
-        g.pose().translate(cx, cy, 0);
-        g.pose().scale(scale, scale, 1.0f);
+        PoseStack pose = g.pose();
+        pose.pushPose();
+        pose.translate(cx, cy, 0);
+        pose.scale(scale, scale, 1.0f);
         g.renderItem(stack, -8, -8);
-        g.pose().popPose();
+        g.renderItemDecorations(this.font, stack, -8, -8);
+        pose.popPose();
     }
 
     private void renderScaledCenteredText(GuiGraphics g, String text, int cx, int cy,
