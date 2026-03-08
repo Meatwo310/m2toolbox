@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
+import net.meatwo310.m2toolbox.client.render.RadialRenderType;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
 import net.meatwo310.m2toolbox.handler.TrayHandler;

@@ -1,4 +1,4 @@
-package net.meatwo310.m2toolbox.client.gui;
+package net.meatwo310.m2toolbox.client.render;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
