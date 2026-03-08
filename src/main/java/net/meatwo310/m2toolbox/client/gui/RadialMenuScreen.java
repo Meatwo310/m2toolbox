@@ -94,11 +94,11 @@ public class RadialMenuScreen extends Screen {
 
     // ツールボックス情報（フェーズ1用）
     private final ItemStack toolboxStack;
-    private final ItemStack[] trayStacks = new ItemStack[9];
+    private final ItemStack[] trayStacks = new ItemStack[ITEM_COUNT - 1];
 
     // トレイ情報（フェーズ2用）
     private int selectedTraySlot = -1;
-    private final ItemStack[] toolStacks = new ItemStack[9];
+    private final ItemStack[] toolStacks = new ItemStack[ITEM_COUNT - 1];
 
     // ---- コンストラクタ -------------------------------------------------------
 
@@ -155,13 +155,22 @@ public class RadialMenuScreen extends Screen {
         return (int) (adjusted / ANGLE_PER_ITEM);
     }
 
-    /** そのインデックスが選択可能（アイテムあり or スタブ）かどうか */
+    /** そのインデックスが選択可能（アイテムあり or スタブ）かどうか。境界外は false。 */
     private boolean isSlotActive(int index) {
-        if (index == 0) return true; // 設定 / ユーティリティ（スタブ）
+        if (index == 0) {
+            return true; // メニュー / 戻る
+        }
+
         int slot = index - 1;
-        return phase == Phase.TRAY_SELECT
-                ? !trayStacks[slot].isEmpty()
-                : !toolStacks[slot].isEmpty();
+        if (slot < 0 || slot >= trayStacks.length) {
+            return false; // 範囲外
+        }
+
+        var stack = switch (phase) {
+            case TRAY_SELECT -> trayStacks[slot];
+            case ITEM_SELECT -> toolStacks[slot];
+        };
+        return !stack.isEmpty();
     }
 
     // ---- レンダリング --------------------------------------------------------
@@ -198,7 +207,7 @@ public class RadialMenuScreen extends Screen {
         src.endBatch();
     }
 
-    private static void drawOuterDonut(VertexConsumer buf, int cx, int cy, int radius, int innerRadius, int hovered) {
+    private void drawOuterDonut(VertexConsumer buf, int cx, int cy, int radius, int innerRadius, int hovered) {
         for (int item = 0; item < ITEM_COUNT; item++) {
             int color = (item == hovered) ? 0x40000000 : 0x50000000;
             int r = FastColor.ARGB32.red(color);
@@ -217,7 +226,7 @@ public class RadialMenuScreen extends Screen {
         }
     }
 
-    private static void drawInnerCircle(VertexConsumer buf, int cx, int cy, int innerRadius) {
+    private void drawInnerCircle(VertexConsumer buf, int cx, int cy, int innerRadius) {
         int argb = 0x20000000;
         int r = FastColor.ARGB32.red(argb);
         int g = FastColor.ARGB32.green(argb);
