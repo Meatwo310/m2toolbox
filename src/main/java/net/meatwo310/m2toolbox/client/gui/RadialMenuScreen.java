@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.meatwo310.m2toolbox.client.M2ToolboxClient;
+import net.meatwo310.m2toolbox.client.render.BrightnessMultiBufferSource;
 import net.meatwo310.m2toolbox.client.render.RadialRenderType;
 import net.meatwo310.m2toolbox.config.ClientConfig;
 import net.meatwo310.m2toolbox.handler.ToolboxHandler;
@@ -329,7 +330,7 @@ public class RadialMenuScreen extends Screen {
             return;
         }
 
-        renderScaledItem(g, mainHandItem, cx, cy, scale);
+        BrightnessMultiBufferSource.renderItem(g, mainHandItem, cx, cy, scale, 0.5f);
         g.drawCenteredString(this.font, mainHandItem.getHoverName(), cx, cy + 13, 0xFFAAAAAA);
     }
 
