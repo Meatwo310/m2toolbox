@@ -155,8 +155,8 @@ public class RadialMenuScreen extends Screen {
         return (int) (adjusted / ANGLE_PER_ITEM);
     }
 
-    /** そのインデックスが選択可能（アイテムあり or スタブ）かどうか。境界外は false。 */
-    private boolean isSlotActive(int index) {
+    /** そのインデックスが選択可能（アイテムあり or スタブ）かどうか。インデックス0は特殊ボタン、1-10はアイテム。境界外は false。 */
+    private boolean isSectorActive(int index) {
         if (index == 0) {
             return true; // メニュー / 戻る
         }
@@ -248,7 +248,7 @@ public class RadialMenuScreen extends Screen {
     private void renderContents(GuiGraphics g, int cx, int cy, int radius, int innerRadius, int hovered) {
         float contentRadius = innerRadius + (radius - innerRadius) * CONTENT_RADIUS_RATIO;
         for (int i = 0; i < ITEM_COUNT; i++) {
-            boolean active = isSlotActive(i);
+            boolean active = isSectorActive(i);
             boolean isHovered = i == hovered;
 
             int iconCx = (int)(cx + SECTOR_MID_COS[i] * contentRadius);
@@ -352,15 +352,11 @@ public class RadialMenuScreen extends Screen {
     }
 
     private void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY, int hovered) {
-        if (!shouldRenderItemTooltip()) {
+        if (!shouldRenderItemTooltip() || hovered == 0 || !isSectorActive(hovered)) {
             return;
         }
 
         int slot = hovered - 1;
-        if (!isSlotActive(slot)) {
-            return;
-        }
-
         var stack = (switch (phase) {
             case TRAY_SELECT -> trayStacks;
             case ITEM_SELECT -> toolStacks;
